@@ -28,7 +28,7 @@ const nextJsReservedFiles = [
 ];
 
 const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
+  baseDirectory: __dirname,
   recommendedConfig: eslintJs.configs.recommended,
 });
 

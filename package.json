@@ -1,6 +1,7 @@
 {
   "name": "website",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "license": "MIT",
   "packageManager": "pnpm@10.10.0",
@@ -9,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "next": "^15.3.2",
@@ -24,6 +26,7 @@
     "eslint": "^9.26.0",
     "eslint-config-next": "^15.3.2",
     "jiti": "^2.4.2",
+    "prettier": "^3.5.3",
     "typescript": "^5.8.3"
   }
 }

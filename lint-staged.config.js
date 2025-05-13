@@ -4,7 +4,7 @@
  */
 const lintStagedConfig = {
   '*.{ts,tsx}': (stagedFiles) => [
-    'eslint .',
+    `eslint ${stagedFiles.join(' ')}`,
     `prettier --write ${stagedFiles.join(' ')}`,
   ],
   '*.{md,json,css,sh,yaml,yml}': (stagedFiles) => [

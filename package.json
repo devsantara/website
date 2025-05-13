@@ -17,11 +17,16 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.6",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.510.0",
     "next": "^15.3.2",
     "postcss": "^8.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.6"
+    "tailwind-merge": "^3.3.0",
+    "tailwindcss": "^4.1.6",
+    "tw-animate-css": "^1.2.9"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

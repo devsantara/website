@@ -5,6 +5,7 @@ import { includeIgnoreFile } from '@eslint/compat';
 import { FlatCompat } from '@eslint/eslintrc';
 import eslintJs from '@eslint/js';
 import { defineConfig } from 'eslint/config';
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +38,7 @@ const eslintConfig = defineConfig([
   {
     files: ['src/**/*.{js,jsx,ts,tsx}'],
   },
+  eslintConfigPrettier,
   ...compat.config({
     extends: ['eslint:recommended', 'next/core-web-vitals', 'next/typescript'],
   }),

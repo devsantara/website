@@ -12,6 +12,7 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",
+    "commitlint": "commitlint --edit",
     "prepare": "husky"
   },
   "dependencies": {
@@ -20,6 +21,8 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@eslint/compat": "^1.2.9",
     "@next/eslint-plugin-next": "^15.3.2",
     "@types/node": "^22.15.17",

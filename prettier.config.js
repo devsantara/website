@@ -16,7 +16,9 @@ const prettierConfig = {
   tabWidth: 2,
   trailingComma: 'all',
   useTabs: false,
-  plugins: [],
+  plugins: ['prettier-plugin-tailwindcss'],
+  tailwindStylesheet: './src/styles/globals.css',
+  tailwindFunctions: ['cn'],
 };
 
 export default prettierConfig;

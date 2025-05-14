@@ -6,6 +6,7 @@ import { FlatCompat } from '@eslint/eslintrc';
 import eslintJs from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import tailwind from 'eslint-plugin-tailwindcss';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +43,16 @@ const eslintConfig = defineConfig([
   ...compat.config({
     extends: ['eslint:recommended', 'next/core-web-vitals', 'next/typescript'],
   }),
+  ...tailwind.configs['flat/recommended'],
+  {
+    settings: {
+      tailwindcss: {
+        config: path.join(__dirname, 'src/styles/globals.css'),
+        callees: ['cn', 'clsx', 'twMerge'],
+        removeDuplicates: true,
+      },
+    },
+  },
   {
     name: 'Javascript rules',
     rules: {
@@ -171,6 +182,12 @@ const eslintConfig = defineConfig([
           eventHandlerPropPrefix: 'on',
         },
       ],
+    },
+  },
+  {
+    name: 'Tailwindcss rules',
+    rules: {
+      'tailwindcss/no-custom-classname': ['error'],
     },
   },
   {

@@ -24,8 +24,8 @@
   // R2 incremental cache
   "r2_buckets": [
     {
-      "binding": "NEXT_INC_CACHE_R2_BUCKET",
-      "bucket_name": "next-inc-cache",
+      "binding": "NEXT_INCREMENTAL_CACHE_R2_BUCKET",
+      "bucket_name": "next-incremental-cache",
     },
   ],
 }

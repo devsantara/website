@@ -1,0 +1,2 @@
+# The NEXTJS_ENV variable defines the environment to use when loading Next.js .env files. It defaults to "production" when not defined.
+NEXTJS_ENV=development

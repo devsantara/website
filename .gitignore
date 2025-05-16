@@ -32,9 +32,14 @@ yarn-error.log*
 
 # env files
 .env*
+.dev.vars
 
 # Vercel
 .vercel
+
+# Open Next / cloudflare
+.open-next
+.wrangler
 
 # Typescript
 *.tsbuildinfo

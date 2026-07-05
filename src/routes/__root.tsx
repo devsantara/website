@@ -3,7 +3,7 @@ import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router';
 
 import { tanstackRouterDevtools } from '#/devtools/router-devtools';
 
-import '#/ui/styles/app.css';
+import appStylesheet from '#/ui/styles/app.css?url';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -12,6 +12,7 @@ export const Route = createRootRoute({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: '@devsantara/website' },
     ],
+    links: [{ rel: 'stylesheet', href: appStylesheet }],
   }),
   shellComponent: RootDocument,
 });

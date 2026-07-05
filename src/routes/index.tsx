@@ -6,8 +6,8 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   return (
-    <main className="layout">
-      <h1 className="title">@devsantara/website</h1>
+    <main className="grid h-dvh place-content-center p-4">
+      <h1 className="font-bold">@devsantara/website</h1>
     </main>
   );
 }

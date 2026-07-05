@@ -1,4 +1,5 @@
 import babel from '@rolldown/plugin-babel';
+import tailwindcss from '@tailwindcss/vite';
 import { devtools as tanstackDevtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
@@ -19,6 +20,7 @@ const config = defineConfig({
     trailingComma: 'all',
     sortImports: true,
     sortPackageJson: true,
+    sortTailwindcss: true,
   },
   lint: {
     ignorePatterns: ['pnpm-lock.yaml', 'src/routeTree.gen.ts'],
@@ -29,6 +31,7 @@ const config = defineConfig({
   },
   plugins: lazyPlugins(() => [
     tanstackDevtools(),
+    tailwindcss(),
     tanstackStart(),
     viteReact(),
     babel({ presets: [reactCompilerPreset()] }),

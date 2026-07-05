@@ -1,0 +1,16 @@
+autoInstallPeers: true
+engineStrict: true
+nodeLinker: 'isolated'
+savePrefix: ''
+minimumReleaseAge: 1440
+minimumReleaseAgeIgnoreMissingTime: false
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@0.2.2
+  vite-plus: 0.2.2
+overrides:
+  vite: 'catalog:'
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: '*'

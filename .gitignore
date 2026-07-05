@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Output
+dist/
+
+# Environment variables
+.env*
+!.env.example
+
+# Logs
+logs/
+*.log
+.pnpm-debug.log*
+
+# Misc
+.DS_Store

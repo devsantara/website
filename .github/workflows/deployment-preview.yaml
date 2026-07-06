@@ -1,0 +1,57 @@
+# Deploys a per-PR preview environment for this repository.
+# Triggered when a PR targeting main (commonly from release/* or hotfix/*) is opened, reopened, or updated (synchronize).
+# Deploys to the "preview" environment with stage name "preview-<PR_NUMBER>" .
+
+name: Deployment (Preview)
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+# Shares a concurrency group with cleanup-preview so a destroy never races an
+# in-flight deploy on the same preview-<PR> stage (which would corrupt state).
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: false
+env:
+  STAGE: ${{ format('preview-{0}', github.event.number) }}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # SECURITY: this job runs PR-controlled code (build scripts, alchemy.run.ts)
+    # with deployment secrets in scope. The `preview` environment MUST have
+    # required-reviewer protection configured in GitHub so untrusted changes
+    # cannot deploy (and exfiltrate secrets) without approval.
+    environment:
+      name: preview
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          cache: true
+      - name: Install dependencies
+        run: vp install
+      - name: Check
+        run: vp check
+      - name: Build and deploy
+        run: vp run alchemy deploy --stage ${{ env.STAGE }}
+        env:
+          # GitHub Context
+          PULL_REQUEST: ${{ github.event.number }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Alchemy
+          HOSTNAME: ${{ vars.HOSTNAME }}
+          ALCHEMY_SECRET: ${{ secrets.ALCHEMY_SECRET }}
+          ALCHEMY_STATE_TOKEN: ${{ secrets.ALCHEMY_STATE_TOKEN }}
+          # Cloudflare CI
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}

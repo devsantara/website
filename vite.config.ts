@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { devtools as tanstackDevtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
+import alchemy from 'alchemy/cloudflare/tanstack-start';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 import { translatedPathnames, translatedPrerender } from '#/lib/i18n/config';
@@ -12,6 +13,12 @@ const config = defineConfig({
   resolve: { tsconfigPaths: true },
   server: { port: 3000 },
   preview: { port: 3000 },
+  build: {
+    target: 'esnext',
+    rollupOptions: {
+      external: ['node:async_hooks', 'cloudflare:workers'],
+    },
+  },
   staged: {
     '*': 'vp check --fix',
   },
@@ -34,6 +41,7 @@ const config = defineConfig({
   },
   plugins: lazyPlugins(() => [
     tanstackDevtools(),
+    alchemy(),
     tailwindcss(),
     tanstackStart({
       srcDirectory: 'src',

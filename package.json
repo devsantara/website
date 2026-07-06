@@ -12,7 +12,11 @@
     "build": "vp build",
     "preview": "vp preview",
     "test": "vp test",
-    "check": "vp check --fix"
+    "check": "vp check --fix",
+    "alchemy": "alchemy",
+    "alchemy:dev": "alchemy dev --env-file ./.env",
+    "alchemy:deploy": "alchemy deploy --env-file ./.env",
+    "alchemy:destroy": "alchemy destroy --env-file ./.env"
   },
   "dependencies": {
     "@base-ui/react": "1.6.0",
@@ -40,6 +44,8 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "1.43.0",
+    "@cloudflare/workers-types": "5.20260705.1",
     "@inlang/paraglide-js": "^2.20.2",
     "@rolldown/plugin-babel": "0.2.3",
     "@tailwindcss/vite": "4.3.2",
@@ -50,9 +56,11 @@
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.3",
+    "alchemy": "0.93.12",
     "babel-plugin-react-compiler": "1.0.0",
     "shadcn": "4.13.0",
     "tailwindcss": "4.3.2",
+    "tldts": "7.4.6",
     "typescript": "6.0.3",
     "vite": "catalog:",
     "vite-plus": "catalog:"

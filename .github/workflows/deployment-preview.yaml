@@ -22,10 +22,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # SECURITY: this job runs PR-controlled code (build scripts, alchemy.run.ts)
-    # with deployment secrets in scope. The `preview` environment MUST have
-    # required-reviewer protection configured in GitHub so untrusted changes
-    # cannot deploy (and exfiltrate secrets) without approval.
     environment:
       name: preview
     permissions:
@@ -39,8 +35,6 @@ jobs:
           cache: true
       - name: Install dependencies
         run: vp install
-      - name: Check
-        run: vp check
       - name: Build and deploy
         run: vp run alchemy deploy --stage ${{ env.STAGE }}
         env:

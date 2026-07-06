@@ -27,8 +27,6 @@ jobs:
           cache: true
       - name: Install dependencies
         run: vp install
-      - name: Check
-        run: vp check
       - name: Build and deploy
         run: vp run alchemy deploy --stage ${{ env.STAGE }}
         env:

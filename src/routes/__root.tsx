@@ -2,6 +2,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools';
 import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router';
 
 import { tanstackRouterDevtools } from '#/devtools/router-devtools';
+import { getLocale, getTextDirection } from '#/lib/i18n/paraglide/runtime';
 import { Toaster } from '#/ui/components/core/sonner';
 import { TooltipProvider } from '#/ui/components/core/tooltip';
 import { ThemeProvider } from '#/ui/theme';
@@ -21,8 +22,11 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const locale = getLocale();
+  const textDirection = getTextDirection();
+
   return (
-    <html suppressHydrationWarning lang="en" dir="ltr" className="antialiased">
+    <html suppressHydrationWarning lang={locale} dir={textDirection} className="antialiased">
       <head>
         <HeadContent />
       </head>

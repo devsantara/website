@@ -66,22 +66,6 @@ const config = defineConfig({
         { match: '/rpc/:path(.*)?', strategy: ['cookie', 'baseLocale'] },
         { match: '/assets/:path(.*)?', exclude: true },
       ],
-      // urlPatterns: [
-      //   {
-      //     pattern: '/',
-      //     localized: [
-      //       ['en', '/en'],
-      //       ['id', '/id'],
-      //     ],
-      //   },
-      //   {
-      //     pattern: '/:path(.*)?',
-      //     localized: [
-      //       ['en', '/en/:path(.*)?'],
-      //       ['id', '/id/:path(.*)?'],
-      //     ],
-      //   },
-      // ],
       urlPatterns: translatedPathnames,
     }),
   ]),

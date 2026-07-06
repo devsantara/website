@@ -2,6 +2,9 @@ import { TanStackDevtools } from '@tanstack/react-devtools';
 import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router';
 
 import { tanstackRouterDevtools } from '#/devtools/router-devtools';
+import { Toaster } from '#/ui/components/core/sonner';
+import { TooltipProvider } from '#/ui/components/core/tooltip';
+import { ThemeProvider } from '#/ui/theme';
 
 import appStylesheet from '#/ui/styles/app.css?url';
 
@@ -19,12 +22,17 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" dir="ltr">
+    <html suppressHydrationWarning lang="en" dir="ltr" className="antialiased">
       <head>
         <HeadContent />
       </head>
       <body>
-        {children}
+        <ThemeProvider defaultTheme="system" storageKey="theme">
+          <TooltipProvider>
+            {children}
+            <Toaster />
+          </TooltipProvider>
+        </ThemeProvider>
         <TanStackDevtools plugins={[tanstackRouterDevtools]} />
         <Scripts />
       </body>

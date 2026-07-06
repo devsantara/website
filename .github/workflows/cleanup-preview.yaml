@@ -1,0 +1,48 @@
+# This workflow destroys the preview environment/deployment when a PR is closed.
+# It prevents preview resources from leaking/stale after close.
+
+name: Cleanup Preview
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+# Shares a concurrency group with deployment-preview so the destroy queues
+# behind any in-flight deploy on the same preview-<PR> stage.
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: false
+env:
+  STAGE: ${{ format('preview-{0}', github.event.number) }}
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: preview
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@v1
+        with:
+          cache: true
+      - name: Install dependencies
+        run: vp install
+      - name: Destroy Preview
+        run: vp run alchemy destroy --stage ${{ env.STAGE }}
+        env:
+          # GitHub Context
+          PULL_REQUEST: ${{ github.event.number }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Alchemy
+          HOSTNAME: ${{ vars.HOSTNAME }}
+          ALCHEMY_SECRET: ${{ secrets.ALCHEMY_SECRET }}
+          ALCHEMY_STATE_TOKEN: ${{ secrets.ALCHEMY_STATE_TOKEN }}
+          # Cloudflare CI
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}

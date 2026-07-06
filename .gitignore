@@ -4,6 +4,10 @@ node_modules/
 # Output
 dist/
 
+# Deployment
+.alchemy/
+.wrangler/
+
 # Environment variables
 .env*
 !.env.example

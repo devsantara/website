@@ -32,7 +32,20 @@ const config = defineConfig({
   plugins: lazyPlugins(() => [
     tanstackDevtools(),
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart({
+      srcDirectory: 'src',
+      start: { entry: 'entry.start.ts' },
+      server: { entry: 'entry.server.ts' },
+      client: { entry: 'entry.client.tsx' },
+      router: {
+        entry: 'entry.router.ts',
+        codeSplittingOptions: {
+          defaultBehavior: [
+            ['component', 'pendingComponent', 'errorComponent', 'notFoundComponent', 'loader'],
+          ],
+        },
+      },
+    }),
     viteReact(),
     babel({ presets: [reactCompilerPreset()] }),
   ]),

@@ -55,7 +55,7 @@ const config = defineConfig({
       server: { entry: 'entry.server.ts' },
       client: { entry: 'entry.client.tsx' },
       prerender: { autoSubfolderIndex: false },
-      pages: createLocalePrerenderPages(['/', '/posts']),
+      pages: createLocalePrerenderPages(['/', '/posts', '/series']),
       // RSC lets us stream server-rendered MDX to the client without shipping
       // the compiled MDX (or mdx-bundler's `new Function`, blocked on Workers).
       rsc: { enabled: true },

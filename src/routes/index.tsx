@@ -8,9 +8,14 @@ function HomePage() {
   return (
     <main className="grid h-dvh place-content-center gap-2 p-4 text-center">
       <h1 className="font-bold">@devsantara/website</h1>
-      <Link to="/posts" className="text-muted-foreground text-sm underline">
-        Read the posts
-      </Link>
+      <nav className="flex flex-col gap-1">
+        <Link to="/posts" className="text-muted-foreground text-sm underline">
+          Read the posts
+        </Link>
+        <Link to="/series" className="text-muted-foreground text-sm underline">
+          Browse the series
+        </Link>
+      </nav>
     </main>
   );
 }

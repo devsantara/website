@@ -4,6 +4,9 @@ node_modules/
 # Output
 dist/
 
+# Content Collections (generated)
+.content-collections/
+
 # Deployment
 .alchemy/
 .wrangler/

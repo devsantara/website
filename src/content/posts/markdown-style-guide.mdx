@@ -1,0 +1,108 @@
+---
+title: Markdown Style Guide
+description: A single reference post that exercises every formatting feature we support — headings, emphasis, lists, tables, code, footnotes, and custom MDX components.
+date: 2026-07-09
+author: Devsantara Team
+tags:
+  - meta
+  - markdown
+---
+
+This post exists to preview every piece of formatting the blog supports. If a
+style looks wrong anywhere on the site, it should look wrong here first.
+
+## Headings
+
+Section titles start at `##` since the post title is the page's `h1`.
+
+### Third level
+
+Used for subsections within a topic.
+
+#### Fourth level
+
+Rarely needed, but supported.
+
+## Emphasis and inline elements
+
+Text can be **bold**, _italic_, or **_both at once_**. GFM adds
+~~strikethrough~~ for retracted statements. Inline code like
+`const answer = 42` sits inside prose, and keyboard-ish references such as
+`Ctrl+C` use the same style.
+
+Links come in a few flavors: an [internal link](/posts), an
+[external link](https://developers.cloudflare.com/workers/), and a bare
+autolink like https://tanstack.com that GFM turns into a link automatically.
+
+## Blockquotes
+
+> The best way to predict the future is to invent it.
+>
+> Blockquotes can span multiple paragraphs, and they can nest:
+>
+> > This is a nested quote inside the first one.
+
+## Lists
+
+Unordered lists, with nesting:
+
+- Compile MDX with the bundler
+- Stream it from the server
+  - No `eval` on Workers
+  - No client-side MDX payload
+- Drop the result into the page
+
+Ordered lists:
+
+1. Write the post as `.mdx`
+2. Let Content Collections validate the frontmatter
+3. Ship it
+
+Task lists from GFM:
+
+- [x] Headings
+- [x] Tables
+- [ ] Syntax highlighting (not wired up yet)
+
+## Tables
+
+| Feature       | Source     |                         Notes |
+| :------------ | :--------- | ----------------------------: |
+| Tables        | remark-gfm |        Column alignment works |
+| Strikethrough | remark-gfm |                 See ~~above~~ |
+| Footnotes     | remark-gfm | Rendered at the end of a post |
+| Components    | MDX        |          `Callout`, `Counter` |
+
+## Code blocks
+
+A fenced block with a language tag:
+
+```ts
+export function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+And one without, for plain output:
+
+```
+$ vp build
+✓ built in 1.02s
+```
+
+## Horizontal rule
+
+Content above the break.
+
+---
+
+Content below the break.
+
+## Footnotes
+
+Cloudflare Workers forbid runtime code evaluation[^1], which shapes how this
+whole blog renders MDX[^2].
+
+[^1]: No `eval`, no `new Function` — the runtime blocks both.
+
+[^2]: See the post _Rendering MDX on Cloudflare Workers_ for the full story.

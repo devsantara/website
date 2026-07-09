@@ -1,13 +1,16 @@
+import contentCollections from '@content-collections/vite';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import { devtools as tanstackDevtools } from '@tanstack/devtools-vite';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
+import rsc from '@vitejs/plugin-rsc';
 import alchemy from 'alchemy/cloudflare/tanstack-start';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
-import { translatedPathnames, translatedPrerender } from '#/lib/i18n/config';
+import { createLocalePrerenderPages, createLocaleUrlPatterns } from '#/lib/i18n/utils';
+import { viteMdx } from '#/modules/markdown/plugin';
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
@@ -40,15 +43,22 @@ const config = defineConfig({
     rules: { 'vite-plus/prefer-vite-plus-imports': 'error' },
   },
   plugins: lazyPlugins(() => [
+    viteMdx(),
+    // `environment: 'ssr'` builds the collection only in the SSR/RSC graph, so
+    // the compiled MDX is never emitted into the client bundle.
+    contentCollections({ environment: 'ssr' }),
     tanstackDevtools(),
-    alchemy(),
     tailwindcss(),
     tanstackStart({
       srcDirectory: 'src',
       start: { entry: 'entry.start.ts' },
       server: { entry: 'entry.server.ts' },
       client: { entry: 'entry.client.tsx' },
-      pages: translatedPrerender,
+      prerender: { autoSubfolderIndex: false },
+      pages: createLocalePrerenderPages(['/', '/posts']),
+      // RSC lets us stream server-rendered MDX to the client without shipping
+      // the compiled MDX (or mdx-bundler's `new Function`, blocked on Workers).
+      rsc: { enabled: true },
       router: {
         entry: 'entry.router.ts',
         codeSplittingOptions: {
@@ -58,7 +68,8 @@ const config = defineConfig({
         },
       },
     }),
-    viteReact(),
+    rsc(),
+    viteReact({ include: /\.(jsx|js|mdx|md|tsx|ts)$/ }),
     babel({ presets: [reactCompilerPreset()] }),
     paraglideVitePlugin({
       project: './project.inlang',
@@ -66,16 +77,18 @@ const config = defineConfig({
       cookieName: 'LOCALE',
       outputStructure: 'message-modules',
       strategy: ['url', 'cookie', 'preferredLanguage', 'baseLocale'],
-      // DisableAsyncLocalStorage should ONLY be used in serverless environments like Cloudflare Workers.
-      disableAsyncLocalStorage: true,
       routeStrategies: [
         { match: '/health', exclude: true },
         { match: '/api/:path(.*)?', exclude: true },
         { match: '/rpc/:path(.*)?', strategy: ['cookie', 'baseLocale'] },
         { match: '/assets/:path(.*)?', exclude: true },
       ],
-      urlPatterns: translatedPathnames,
+      urlPatterns: createLocaleUrlPatterns(),
     }),
+    // Cloudflare (via Alchemy) runs last so it can pick up the environments
+    // configured by TanStack Start + RSC. `childEnvironments: ['rsc']` registers
+    // the RSC graph as a child of the `ssr` Worker environment.
+    alchemy({ viteEnvironment: { name: 'ssr', childEnvironments: ['rsc'] } }),
   ]),
 });
 export default config;

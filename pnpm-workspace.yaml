@@ -9,6 +9,12 @@ catalog:
   vite-plus: 0.2.2
 overrides:
   vite: 'catalog:'
+  # Dedupe @types/hast to a single copy. Two versions (3.0.4 + 3.0.5) otherwise
+  # coexist in the store, and mdast-util-to-hast vs hast-util-raw can resolve
+  # different ones — making `toHast()`'s return type unassignable to `raw()`'s
+  # parameter under per-package type resolution (the editor sees it; a root
+  # `tsc` dedupes and doesn't). See src/modules/markdown/plugins/rehype-image.ts.
+  '@types/hast': 3.0.5
 peerDependencyRules:
   allowAny:
     - vite

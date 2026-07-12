@@ -11,6 +11,7 @@ import type {
   SeriesPostContent,
   SeriesPostItem,
 } from '#/modules/series/series.types';
+import { parseThumbnail } from '#/modules/thumbnail/thumbnail.utils';
 
 export const getAllSeriesFn = createServerFn({ method: 'GET' }).handler((): SeriesItem[] => {
   return [...allSeries]
@@ -21,6 +22,7 @@ export const getAllSeriesFn = createServerFn({ method: 'GET' }).handler((): Seri
         title: series.title,
         description: series.description,
         date: series.date,
+        thumbnail: series.thumbnail,
         lastModification: series.lastModification,
       };
     });
@@ -44,6 +46,8 @@ export const getSeriesBySlugFn = createServerFn({ method: 'GET' })
           date: post.date,
           author: post.author,
           tags: post.tags,
+          // A post without its own thumbnail inherits the series' one.
+          thumbnail: post.thumbnail ?? series.thumbnail,
           lastModification: post.lastModification,
           series: { slug: post.seriesSlug },
         };
@@ -54,6 +58,7 @@ export const getSeriesBySlugFn = createServerFn({ method: 'GET' })
       title: series.title,
       description: series.description,
       date: series.date,
+      thumbnail: parseThumbnail(series.thumbnail),
       lastModification: series.lastModification,
       posts,
       mdx: await renderServerComponent(<MarkdownRender content={series.mdx} />),
@@ -68,6 +73,9 @@ export const getSeriesPostFn = createServerFn({ method: 'GET' })
     );
     if (!post) throw notFound();
 
+    // A post without its own thumbnail inherits the series' one.
+    const series = allSeries.find((series) => series.slug === post.seriesSlug);
+
     return {
       slug: post.slug,
       order: post.order,
@@ -76,6 +84,7 @@ export const getSeriesPostFn = createServerFn({ method: 'GET' })
       date: post.date,
       author: post.author,
       tags: post.tags,
+      thumbnail: parseThumbnail(post.thumbnail ?? series?.thumbnail ?? null),
       lastModification: post.lastModification,
       series: { slug: post.seriesSlug },
       mdx: await renderServerComponent(<MarkdownRender content={post.mdx} />),

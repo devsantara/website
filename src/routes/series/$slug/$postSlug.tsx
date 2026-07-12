@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { getSeriesPostFn } from '#/modules/series/series.fn';
+import { ThumbnailFigure } from '#/modules/thumbnail/components/thumbnail-figure';
 import { Badge } from '#/ui/components/core/badge';
 import { Separator } from '#/ui/components/core/separator';
 
@@ -24,6 +25,7 @@ function SeriesPostPage() {
           >
             ← Back to series
           </Link>
+          {post.thumbnail && <ThumbnailFigure thumbnail={post.thumbnail} className="mb-6" />}
           <h1 className="mb-2 text-3xl font-bold">{post.title}</h1>
           <p className="text-muted-foreground mb-2 text-sm">
             By {post.author} · <time dateTime={post.date}>{post.date}</time>

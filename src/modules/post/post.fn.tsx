@@ -6,6 +6,7 @@ import * as z from 'zod/v4';
 
 import { MarkdownRender } from '#/modules/markdown';
 import type { PostContent, PostItem } from '#/modules/post/post.types';
+import { parseThumbnail } from '#/modules/thumbnail/thumbnail.utils';
 
 export const getAllPostsFn = createServerFn({ method: 'GET' }).handler((): PostItem[] => {
   return [...allPosts]
@@ -18,6 +19,7 @@ export const getAllPostsFn = createServerFn({ method: 'GET' }).handler((): PostI
         date: post.date,
         author: post.author,
         tags: post.tags,
+        thumbnail: post.thumbnail,
         lastModification: post.lastModification,
       };
     });
@@ -36,6 +38,7 @@ export const getPostBySlugFn = createServerFn({ method: 'GET' })
       date: post.date,
       author: post.author,
       tags: post.tags,
+      thumbnail: parseThumbnail(post.thumbnail),
       lastModification: post.lastModification,
       mdx: await renderServerComponent(<MarkdownRender content={post.mdx} />),
     };

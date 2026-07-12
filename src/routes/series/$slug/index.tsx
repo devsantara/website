@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { getSeriesBySlugFn } from '#/modules/series/series.fn';
+import { ThumbnailFigure } from '#/modules/thumbnail/components/thumbnail-figure';
 import { Separator } from '#/ui/components/core/separator';
 
 export const Route = createFileRoute('/series/$slug/')({
@@ -14,6 +15,7 @@ function SeriesDetailPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-6">
       <article>
+        {series.thumbnail && <ThumbnailFigure thumbnail={series.thumbnail} className="mb-6" />}
         <header>
           <h1 className="mb-2 text-3xl font-bold">{series.title}</h1>
           <p className="text-muted-foreground mb-3 text-sm">{series.description}</p>

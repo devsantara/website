@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import { getPostBySlugFn } from '#/modules/post/post.fn';
+import { ThumbnailFigure } from '#/modules/thumbnail/components/thumbnail-figure';
 import { Badge } from '#/ui/components/core/badge';
 import { Separator } from '#/ui/components/core/separator';
 
@@ -15,6 +16,7 @@ function PostPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-6">
       <article>
+        {post.thumbnail && <ThumbnailFigure thumbnail={post.thumbnail} className="mb-6" />}
         <header>
           <h1 className="mb-2 text-3xl font-bold">{post.title}</h1>
           <p className="text-muted-foreground mb-2 text-sm">

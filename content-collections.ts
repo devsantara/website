@@ -5,7 +5,7 @@ import type { WriterHook } from '@content-collections/core';
 import { createDefaultImport, defineCollection, defineConfig } from '@content-collections/core';
 import type { MDXContent } from 'mdx/types';
 
-import { getLastModification } from '#/modules/markdown/utils';
+import { getLastModification, resolveAsset } from '#/modules/markdown/utils';
 import { postFrontmatterSchema } from '#/modules/post/post.schema';
 import {
   seriesFrontmatterSchema,
@@ -28,7 +28,11 @@ const posts = defineCollection({
       getLastModification,
     );
     const mdx = createDefaultImport<MDXContent>(`#/content/posts/${filePath}`);
-    return { ...document, slug, mdx, lastModification };
+    const contentSubDir = path.posix.join('posts', path.posix.dirname(filePath));
+    const thumbnail = document.thumbnail
+      ? { ...document.thumbnail, src: resolveAsset(document.thumbnail.src, contentSubDir) }
+      : null;
+    return { ...document, slug, mdx, lastModification, thumbnail };
   },
 });
 
@@ -46,7 +50,11 @@ const series = defineCollection({
       getLastModification,
     );
     const mdx = createDefaultImport<MDXContent>(`#/content/series/${filePath}`);
-    return { ...document, slug, mdx, lastModification };
+    const contentSubDir = path.posix.join('series', path.posix.dirname(filePath));
+    const thumbnail = document.thumbnail
+      ? { ...document.thumbnail, src: resolveAsset(document.thumbnail.src, contentSubDir) }
+      : null;
+    return { ...document, slug, mdx, lastModification, thumbnail };
   },
 });
 
@@ -73,7 +81,11 @@ const seriesPost = defineCollection({
       getLastModification,
     );
     const mdx = createDefaultImport<MDXContent>(`#/content/series/${filePath}`);
-    return { ...document, slug, seriesSlug, order, mdx, lastModification };
+    const contentSubDir = path.posix.join('series', path.posix.dirname(filePath));
+    const thumbnail = document.thumbnail
+      ? { ...document.thumbnail, src: resolveAsset(document.thumbnail.src, contentSubDir) }
+      : null;
+    return { ...document, slug, seriesSlug, order, mdx, lastModification, thumbnail };
   },
   onSuccess: (documents) => {
     const ordersBySeries = new Map<string, Set<number>>();

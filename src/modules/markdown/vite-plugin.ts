@@ -5,6 +5,7 @@ import {
   transformerNotationFocus,
   transformerRenderIndentGuides,
 } from '@shikijs/transformers';
+import rehypeMdxImportMedia from 'rehype-mdx-import-media';
 import type { Options as RehypePrettyCodeOptions } from 'rehype-pretty-code';
 import rehypePrettyCode from 'rehype-pretty-code';
 import remarkDirective from 'remark-directive';
@@ -13,6 +14,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import type { Plugin } from 'vite';
 
+import { rehypeImage } from '#/modules/markdown/plugins/rehype-image';
 import { remarkTabs } from '#/modules/markdown/plugins/remark-tabs';
 
 /**
@@ -46,8 +48,8 @@ const rehypePrettyCodeOptions: RehypePrettyCodeOptions = {
 /**
  * Vite plugin that compiles `.mdx` files through the project's remark/rehype
  * pipeline: frontmatter handling, GFM, the `:::tabs` directive
- * ({@link remarkTabs}), and Shiki syntax highlighting
- * ({@link rehypePrettyCodeOptions}).
+ * (`remarkTabs`), and Shiki syntax highlighting
+ * (`rehypePrettyCodeOptions`).
  */
 export function viteMdx(): Plugin {
   return {
@@ -63,7 +65,15 @@ export function viteMdx(): Plugin {
         remarkDirective,
         remarkTabs,
       ],
-      rehypePlugins: [[rehypePrettyCode, rehypePrettyCodeOptions]],
+      // `rehypeImage` runs before `rehypeMdxImportMedia` so it still sees the
+      // raw string `src` it needs to read pixel dimensions from disk and to
+      // detect a captioned image; import-media then turns every local `src`
+      // into a fingerprinted asset import.
+      rehypePlugins: [
+        [rehypePrettyCode, rehypePrettyCodeOptions],
+        rehypeImage,
+        rehypeMdxImportMedia,
+      ],
     }),
   };
 }

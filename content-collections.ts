@@ -5,7 +5,7 @@ import type { WriterHook } from '@content-collections/core';
 import { createDefaultImport, defineCollection, defineConfig } from '@content-collections/core';
 import type { MDXContent } from 'mdx/types';
 
-import { getLastModification, resolveAsset } from '#/modules/markdown/utils';
+import { getLastModification, resolveAsset } from '#/modules/markdown/markdown.utils';
 import { postFrontmatterSchema } from '#/modules/post/post.schema';
 import {
   seriesFrontmatterSchema,

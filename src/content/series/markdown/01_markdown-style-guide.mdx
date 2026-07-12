@@ -1,6 +1,6 @@
 ---
 title: Markdown Style Guide
-description: A single reference post that exercises every formatting feature we support — headings, emphasis, lists, tables, code, footnotes, and custom MDX components.
+description: One reference post that exercises every formatting feature the blog supports — from headings, emphasis, and lists to syntax-highlighted code, diffs, tabs, and footnotes.
 date: 2026-07-09
 author: Devsantara Team
 tags:
@@ -8,39 +8,91 @@ tags:
   - markdown
 ---
 
-This post exists to preview every piece of formatting the blog supports. If a
-style looks wrong anywhere on the site, it should look wrong here first.
+This post is a top-to-bottom tour of every piece of formatting the blog can
+render. It starts with the plain-Markdown basics everyone knows, moves through
+the GitHub Flavored Markdown (GFM) extensions, and ends with the advanced code
+tooling and custom components that are specific to this site.
+
+Treat it as the source of truth: if a style looks wrong anywhere else on the
+site, it should look wrong here first. Read the rendered page and its `.mdx`
+source side by side to see exactly what produces what.
 
 ## Headings
 
-Section titles start at `##` since the post title is the page's `h1`.
+Section titles start at `##`, because the post title above is the page's only
+`h1`. From there the levels nest down to `h4`:
 
 ### Third level
 
-Used for subsections within a topic.
+Used for subsections within a topic — like this one.
 
 #### Fourth level
 
-Rarely needed, but supported.
+Rarely needed, but supported for one more level of depth.
+
+Keep the hierarchy tidy: don't skip a level on the way down, and let the meaning
+of the content pick the level, not the size of the text.
+
+## Paragraphs and line breaks
+
+Paragraphs are separated by a blank line. A single newline _inside_ a paragraph
+is collapsed into a space, so you can hard-wrap the source at a comfortable
+width without changing the output.
+
+When you genuinely need a break inside a paragraph, end a line with a
+backslash — or, if you prefer invisible syntax, two trailing spaces:
+
+Roses are red,\
+violets are blue,\
+this line broke early because a backslash told it to.
 
 ## Emphasis and inline elements
 
 Text can be **bold**, _italic_, or **_both at once_**. GFM adds
 ~~strikethrough~~ for retracted statements. Inline code like
-`const answer = 42` sits inside prose, and keyboard-ish references such as
-`Ctrl+C` use the same style.
+`const answer = 42` sits inside prose, and keyboard-style references such as
+`Ctrl + C` reuse the same treatment.
 
-Links come in a few flavors: an [internal link](/posts), an
-[external link](https://developers.cloudflare.com/workers/), and a bare
-autolink like https://tanstack.com that GFM turns into a link automatically.
+These marks combine freely — you can have **bold with `code` inside it** or a
+~~_struck-through italic_~~ aside — though restraint usually reads better.
+
+## Links
+
+Links come in a few flavors:
+
+- an [internal link](/posts) to another page on the site,
+- an [external link](https://viteplus.dev/guide/) to somewhere else,
+- a [link with a title](https://mdxjs.com 'The MDX documentation') you can
+  hover to reveal, and
+- a bare autolink like https://tanstack.com that GFM detects and wires up on
+  its own.
+
+You can also use reference-style links, which move the URL out of the sentence
+and down to a definition — handy when the same source is cited more than once,
+like the [MDX docs][mdx] and the [Vite+ guide][vite]:
+
+[mdx]: https://mdxjs.com
+[vite]: https://viteplus.dev/guide/
+
+The definitions themselves render nothing; only the labels above become links.
 
 ## Blockquotes
 
 > The best way to predict the future is to invent it.
+
+Blockquotes can span multiple paragraphs, hold other blocks, and nest inside one
+another:
+
+> **Worth remembering**
 >
-> Blockquotes can span multiple paragraphs, and they can nest:
+> A quote can carry more than a single line — it can contain its own lists:
 >
-> > This is a nested quote inside the first one.
+> - a first point,
+> - a second point with `inline code`,
+>
+> and it can nest another quote inside it:
+>
+> > Like this one, tucked one level deeper.
 
 ## Lists
 
@@ -48,49 +100,34 @@ Unordered lists, with nesting:
 
 - Compile MDX with the bundler
 - Stream it from the server
-  - No `eval` on Workers
+  - No `eval` on the edge runtime
   - No client-side MDX payload
-- Drop the result into the page
+- Drop the finished HTML into the page
 
-Ordered lists:
+Ordered lists count for you, so the source numbers don't have to be right:
 
 1. Write the post as `.mdx`
 2. Let Content Collections validate the frontmatter
 3. Ship it
 
-Task lists from GFM:
+An ordered list can also start from a specific number, and mix in other list
+types as it nests:
 
-- [x] Headings
-- [x] Tables
-- [ ] Syntax highlighting (not wired up yet)
+3. This item is numbered three,
+4. and this one four —
+   - with an unordered branch,
+   - hanging off of it.
 
-## Tables
+Task lists from GFM render as checkboxes:
 
-| Feature       | Source     |                         Notes |
-| :------------ | :--------- | ----------------------------: |
-| Tables        | remark-gfm |        Column alignment works |
-| Strikethrough | remark-gfm |                 See ~~above~~ |
-| Footnotes     | remark-gfm | Rendered at the end of a post |
-| Components    | MDX        |          `Callout`, `Counter` |
+- [x] Headings, emphasis, and lists
+- [x] Tables and footnotes
+- [x] Syntax highlighting
+- [ ] Anything we haven't built yet
 
-## Code blocks
+## Horizontal rules
 
-A fenced block with a language tag:
-
-```ts
-export function greet(name: string): string {
-  return `Hello, ${name}!`;
-}
-```
-
-And one without, for plain output:
-
-```
-$ vp build
-✓ built in 1.02s
-```
-
-## Horizontal rule
+Three dashes on their own line draw a divider between stretches of content:
 
 Content above the break.
 
@@ -98,11 +135,249 @@ Content above the break.
 
 Content below the break.
 
+## Tables
+
+Columns align with colons in the divider row — left, center, or right:
+
+| Feature       |   Source   |         Alignment |
+| :------------ | :--------: | ----------------: |
+| Tables        | remark-gfm |    left / default |
+| Strikethrough | remark-gfm | centered ~~text~~ |
+| Footnotes     | remark-gfm | right, at the end |
+| Tabs          |    MDX     |    `:::tabs` here |
+
+Cells accept inline formatting — emphasis, `code`, and links all work — but not
+block-level content like lists or multiple paragraphs.
+
 ## Footnotes
 
-Cloudflare Workers forbid runtime code evaluation[^1], which shapes how this
-whole blog renders MDX[^2].
+Footnotes let you attach an aside without breaking the sentence's flow[^1]. They
+can be referenced more than once, and each one links back up to where it was
+cited[^2].
 
-[^1]: No `eval`, no `new Function` — the runtime blocks both.
+## Code blocks
 
-[^2]: See the post _Rendering MDX on Cloudflare Workers_ for the full story.
+Everything below is syntax-highlighted at build time by Shiki, so the browser
+only ever receives finished HTML — no highlighter ships to the client.
+
+### Language tags
+
+Add a language after the opening fence to get real token colors. Any language
+Shiki knows works — here are a few:
+
+```ts
+export function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+```css
+.button:hover {
+  background: var(--color-primary);
+  transform: translateY(-1px);
+}
+```
+
+```json
+{
+  "name": "devsantara",
+  "private": true,
+  "type": "module"
+}
+```
+
+A fence with no language falls back to plain text — good for terminal output:
+
+```
+$ vp build
+✓ built in 1.02s
+```
+
+### Titles
+
+Fence meta `title="..."` adds a header bar with the filename and a permanent
+copy button:
+
+```ts title="src/modules/markdown/greet.ts"
+export function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+### Line and word highlights
+
+`{2}` highlights a whole line by number and accepts ranges like `{1,3-4}`;
+`/answer/` highlights every occurrence of a word:
+
+```ts {2} /answer/
+const question = 'life, the universe, everything';
+const answer = 6 * 7;
+console.log(`${question} = ${answer}`);
+```
+
+### Line numbers
+
+Numbers are opt-in per fence with `showLineNumbers`. Add a count in braces —
+`showLineNumbers{40}` — to start from a different line:
+
+```ts showLineNumbers{40}
+export function fibonacci(n: number): number {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+```
+
+### Diffs
+
+`// [!code ++]` and `// [!code --]` mark added and removed lines while keeping
+the language's own colors. The markers never render, and the copy button copies
+the end state — removed lines are skipped:
+
+```ts title="src/modules/post/post.fn.tsx"
+export function getPost(slug: string) {
+  const post = legacyLookup(slug); // [!code --]
+  const post = allPosts.find((p) => p.slug === slug); // [!code ++]
+  return post;
+}
+```
+
+### Focus
+
+`// [!code focus]` dims everything else until you hover the block:
+
+```ts
+export function getPost(slug: string) {
+  const post = allPosts.find((p) => p.slug === slug); // [!code focus]
+  return post;
+}
+```
+
+### Errors and warnings
+
+`// [!code error]` and `// [!code warning]` tint a line the way an editor's
+diagnostics would:
+
+```ts
+const post = allPosts.find((p) => p.slug === slug);
+post.title; // [!code error]
+console.log('debug output'); // [!code warning]
+```
+
+### Indent guides
+
+Nested code gets faint vertical guides down each level of indentation,
+automatically — no meta required:
+
+```ts
+export function walk(node: Node) {
+  if (node.children) {
+    for (const child of node.children) {
+      if (child.type === 'element') {
+        visit(child);
+      }
+    }
+  }
+}
+```
+
+### Inline code highlighting
+
+Inline code opts into highlighting with a trailing language marker, so
+`const answer = 42{:ts}` gets real token colors right inside a sentence. The
+syntax is a language name after a colon at the end of the code span:
+
+```md
+Inline code highlights with `const answer = 42{:ts}`.
+```
+
+## Tabs
+
+`:::tabs` groups content into tabs. Each `::tab[Label]` marker starts a tab, and
+anything can follow it — a fence, prose, a list, or a mix. Note there's no space
+after the opening colons, and fence meta like `title="..."` keeps working inside
+a tab:
+
+````md
+:::tabs
+
+::tab[pnpm]
+
+```bash title="terminal"
+pnpm add shiki
+```
+
+::tab[npm]
+
+```bash
+npm install shiki
+```
+
+:::
+````
+
+Which renders as:
+
+:::tabs
+
+::tab[pnpm]
+
+```bash title="terminal"
+pnpm add shiki
+```
+
+::tab[npm]
+
+```bash
+npm install shiki
+```
+
+::tab[bun]
+
+```bash
+bun add shiki
+```
+
+:::
+
+Tabs aren't limited to code. Here prose and a list share a group:
+
+:::tabs
+
+::tab[Install]
+
+Install the dependency with your package manager of choice:
+
+```bash
+pnpm add shiki
+```
+
+::tab[Configure]
+
+Then wire it into the config:
+
+- open `vite.config.ts`
+- add the plugin to the `plugins` array
+- restart the dev server
+
+:::
+
+## Escapes and literal characters
+
+A backslash makes the next character literal, so Markdown punctuation shows up
+as plain text instead of doing its usual job — writing `\*asterisks\*` gives you
+\*asterisks\* rather than emphasis.
+
+Because this site parses `:::` directives (that's how tabs are built), a stray
+colon-word is turned back into plain text for you. CSS pseudo-classes like
+:hover and selectors like :root render literally in prose — no escaping needed.
+
+To put a literal backtick inside inline code, wrap the span in a longer run of
+backticks: ``here's a ` backtick`` stays intact.
+
+[^1]:
+    Like this — a short note that lives at the bottom of the post but reads
+    as if it were right here.
+
+[^2]:
+    Every footnote gets a return arrow that jumps back to its reference, so
+    readers never lose their place.

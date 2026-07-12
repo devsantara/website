@@ -10,7 +10,7 @@ import alchemy from 'alchemy/cloudflare/tanstack-start';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
 import { createLocalePrerenderPages, createLocaleUrlPatterns } from '#/lib/i18n/utils';
-import { viteMdx } from '#/modules/markdown/plugin';
+import { viteMdx } from '#/modules/markdown/vite-plugin';
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },

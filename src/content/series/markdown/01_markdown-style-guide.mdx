@@ -1,87 +1,234 @@
 ---
 title: Markdown Style Guide
-description: One reference post that exercises every formatting feature the blog supports — from headings, emphasis, and lists to syntax-highlighted code, diffs, tabs, and footnotes.
+description: The complete reference for every formatting feature this blog renders — frontmatter, GFM prose, syntax-highlighted code, tabs, footnotes, and the edge cases around each.
 date: 2026-07-09
+thumbnail: null
 author: Devsantara Team
 tags:
   - meta
   - markdown
 ---
 
-This post is a top-to-bottom tour of every piece of formatting the blog can
-render. It starts with the plain-Markdown basics everyone knows, moves through
-the GitHub Flavored Markdown (GFM) extensions, and ends with the advanced code
-tooling and custom components that are specific to this site.
+This is the reference for everything you can write in a post. Formatting comes
+from four layers, all resolved at build time so the browser only ever receives
+finished HTML:
 
-Treat it as the source of truth: if a style looks wrong anywhere else on the
-site, it should look wrong here first. Read the rendered page and its `.mdx`
-source side by side to see exactly what produces what.
+- **CommonMark + GFM** (`remark-gfm`) — headings, emphasis, lists, tables,
+  task lists, strikethrough, autolinks, and footnotes.
+- **The `:::tabs` directive** (`remark-directive`) — tabbed content.
+- **Shiki** (`rehype-pretty-code`) — syntax highlighting with diffs, focus,
+  highlights, and line numbers.
+- **App components** — links, images, and code blocks are swapped for
+  app-aware React components.
+
+Each section below states the rule, shows the syntax, and renders the result so
+you can see exactly what produces what. Where a feature has a sharp edge, it's
+called out with **Edge case**.
+
+## Frontmatter
+
+Every post opens with a YAML block between `---` fences. It's parsed separately
+and never renders into the body. All fields are required except `thumbnail`,
+which may be `null`.
+
+```yaml
+---
+title: Markdown Style Guide
+description: One-line summary used in listings and metadata.
+date: 2026-07-09
+author: Devsantara Team
+tags:
+  - meta
+  - markdown
+thumbnail: null
+---
+```
+
+`title` is the page's `h1` — don't write another `#` heading in the body.
+`date` is an ISO date (`YYYY-MM-DD`). `tags` is a list, even for a single tag.
+
+A `thumbnail` is either `null` or an object. Only `src` is required; `alt`
+defaults to empty and `caption` to none. `src` is a remote URL or a path
+relative to the document, and `caption` renders **inline Markdown** — including
+links, which flow through the same app-aware anchor as the body:
+
+```yaml
+thumbnail:
+  src: './assets/cover.jpg'
+  alt: 'What a screen reader announces for the cover image'
+  caption: 'Credit: **bold**, _italic_, `code`, and [links](https://viteplus.dev) all work.'
+```
 
 ## Headings
 
-Section titles start at `##`, because the post title above is the page's only
-`h1`. From there the levels nest down to `h4`:
+Section titles run from `##` to `####`. The post title owns the only `h1`, so
+body headings start at level two.
+
+```md
+## Second level — a top-level section
+
+### Third level — a subsection
+
+#### Fourth level — one more step down
+```
+
+Renders as:
 
 ### Third level
 
-Used for subsections within a topic — like this one.
+A subsection within a topic — like this one.
 
 #### Fourth level
 
 Rarely needed, but supported for one more level of depth.
 
-Keep the hierarchy tidy: don't skip a level on the way down, and let the meaning
-of the content pick the level, not the size of the text.
+**Don't skip levels** on the way down (`##` → `####`). It breaks the document
+outline that assistive tech relies on.
+
+**Edge case — a space is required.** `## Heading` is a heading; `##Heading`
+(no space) is literal text. A closing run of `#` is optional and ignored, so
+`## Heading ##` renders the same as `## Heading`.
+
+**Edge case — underline headings.** CommonMark also reads a line of text
+underlined with `===` as an `h1` and `---` as an `h2`. Both are easy to trigger
+by accident, so prefer the `#` form everywhere.
 
 ## Paragraphs and line breaks
 
-Paragraphs are separated by a blank line. A single newline _inside_ a paragraph
-is collapsed into a space, so you can hard-wrap the source at a comfortable
-width without changing the output.
+A blank line separates paragraphs. A single newline _inside_ a paragraph
+collapses to a space, so you can hard-wrap the source however you like — it
+reflows into one paragraph. Extra blank lines collapse to a single break.
 
-When you genuinely need a break inside a paragraph, end a line with a
-backslash — or, if you prefer invisible syntax, two trailing spaces:
+To force a line break _within_ a paragraph, end the line with a backslash (a
+trailing double-space works too, but it's invisible in review — prefer the
+backslash):
+
+```md
+Roses are red,\
+violets are blue,\
+this line broke early because a backslash told it to.
+```
+
+Renders as:
 
 Roses are red,\
 violets are blue,\
 this line broke early because a backslash told it to.
 
-## Emphasis and inline elements
+## Emphasis and inline formatting
 
-Text can be **bold**, _italic_, or **_both at once_**. GFM adds
-~~strikethrough~~ for retracted statements. Inline code like
-`const answer = 42` sits inside prose, and keyboard-style references such as
-`Ctrl + C` reuse the same treatment.
+| Syntax                   | Result             |
+| :----------------------- | :----------------- |
+| `**bold**` or `__bold__` | **bold**           |
+| `_italic_` or `*italic*` | _italic_           |
+| `**_both at once_**`     | **_both at once_** |
+| `~~strikethrough~~`      | ~~strikethrough~~  |
+| `` `inline code` ``      | `inline code`      |
 
-These marks combine freely — you can have **bold with `code` inside it** or a
-~~_struck-through italic_~~ aside — though restraint usually reads better.
+Marks combine freely — **bold with `code` inside it** or a
+~~_struck-through italic_~~ aside — though restraint reads better. Inline code
+is also where keyboard hints like `Ctrl + C` and literal punctuation live,
+since nothing inside it is interpreted.
+
+**Edge case — intra-word emphasis.** Asterisks work mid-word but underscores
+don't. So `un*bel*ievable` gives un*bel*ievable, while a `snake_case_name` stays
+literal — the underscores in snake_case_name never turn into emphasis.
+
+**Edge case — a literal backtick in code.** Wrap the span in a longer run of
+backticks and pad with spaces: ` `here's a `backtick`` `` renders as
+``here's a` backtick``.
 
 ## Links
 
-Links come in a few flavors:
+```md
+- an [internal link](/posts) to another page on this site
+- an [external link](https://viteplus.dev/guide/) to somewhere else
+- a [titled link](https://mdxjs.com 'The MDX docs') — hover to see the title
+- a bare URL like https://tanstack.com that GFM autolinks on its own
+```
 
-- an [internal link](/posts) to another page on the site,
+Renders as:
+
+- an [internal link](/posts) to another page on this site,
 - an [external link](https://viteplus.dev/guide/) to somewhere else,
-- a [link with a title](https://mdxjs.com 'The MDX documentation') you can
-  hover to reveal, and
-- a bare autolink like https://tanstack.com that GFM detects and wires up on
-  its own.
+- a [titled link](https://mdxjs.com 'The MDX docs') you can hover, and
+- a bare URL like https://tanstack.com that GFM autolinks on its own.
 
-You can also use reference-style links, which move the URL out of the sentence
-and down to a definition — handy when the same source is cited more than once,
-like the [MDX docs][mdx] and the [Vite+ guide][vite]:
+Internal links (paths starting with `/`) navigate client-side with no full
+reload. Everything else — external URLs, `mailto:`, `tel:`, and hash links —
+opens in a new, isolated tab. GFM also autolinks bare `www.` hosts and email
+addresses.
+
+**Reference-style links** move the URL to a definition elsewhere in the file —
+handy when one source is cited more than once, like the [MDX docs][mdx] and the
+[Vite+ guide][vite]:
+
+```md
+See the [MDX docs][mdx] and the [Vite+ guide][vite].
+
+[mdx]: https://mdxjs.com
+[vite]: https://viteplus.dev/guide/
+```
 
 [mdx]: https://mdxjs.com
 [vite]: https://viteplus.dev/guide/
 
-The definitions themselves render nothing; only the labels above become links.
+The definitions render nothing; only the labels above become links.
+
+## Images
+
+Reference a local image with a relative path. It's fingerprinted at build time
+and its real pixel dimensions are baked in, so the page reserves space and never
+reflows as images load:
+
+```md
+![Rocky mountain peaks lit by a golden sunset](./assets/picture-1.jpg)
+```
+
+![Rocky mountain peaks illuminated by golden sunset light](./assets/picture-1.jpg)
+
+The alt text in square brackets describes the image for screen readers. Leave it
+empty (`![]`) _only_ for purely decorative images.
+
+### Captions
+
+Add a **title in quotes** after the path and a lone image becomes a `<figure>`
+with a `<figcaption>`. The caption accepts inline Markdown _and_ raw HTML — ideal
+for image credits, which is often what a stock library hands you:
+
+```md
+![Jagged peaks under a cloudy sky](./assets/picture-2.jpg 'Photo by [Intricate Explorer](https://unsplash.com) on Unsplash')
+```
+
+![Jagged mountain peaks under a cloudy sky](./assets/picture-2.jpg 'Photo by [Intricate Explorer](https://unsplash.com/@intricateexplorer) on [Unsplash](https://unsplash.com/photos/Xwh7RclsOUA)')
+
+### Remote images
+
+Remote images work, but can't be measured at build time, so they don't get
+intrinsic dimensions (the layout may shift as they arrive):
+
+![A glowing red nebula scattered with stars in deep space](https://images.unsplash.com/photo-1783716549682-5f945bb5f47e?q=80&w=1329&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)
+
+**Edge case — when an image stays inline.** The figure/caption treatment only
+applies to an image that is _alone_ in its paragraph _and_ has a title. An image
+with no title, one wrapped in a link, or one sharing its paragraph with text
+stays inline — and its title, if any, becomes a hover tooltip instead of a
+caption.
+
+**Edge case — unmeasurable files.** Remote, root-absolute (`/logo.png`), and
+`public/` sources skip build-time sizing, as do files with no pixel dimensions
+(e.g. a `viewBox`-only SVG). They still render; they just don't reserve space.
 
 ## Blockquotes
+
+```md
+> The best way to predict the future is to invent it.
+```
 
 > The best way to predict the future is to invent it.
 
 Blockquotes can span multiple paragraphs, hold other blocks, and nest inside one
-another:
+another — prefix each nested level with another `>`:
 
 > **Worth remembering**
 >
@@ -96,7 +243,16 @@ another:
 
 ## Lists
 
-Unordered lists, with nesting:
+**Unordered** lists use `-`, `*`, or `+` (pick one and keep it consistent).
+Indent to nest:
+
+```md
+- Compile MDX with the bundler
+- Stream it from the server
+  - No `eval` on the edge runtime
+  - No client-side MDX payload
+- Drop the finished HTML into the page
+```
 
 - Compile MDX with the bundler
 - Stream it from the server
@@ -104,30 +260,55 @@ Unordered lists, with nesting:
   - No client-side MDX payload
 - Drop the finished HTML into the page
 
-Ordered lists count for you, so the source numbers don't have to be right:
+**Ordered** lists count for you — the source numbers don't have to be right:
+
+```md
+1. Write the post as `.mdx`
+2. Let Content Collections validate the frontmatter
+3. Ship it
+```
 
 1. Write the post as `.mdx`
 2. Let Content Collections validate the frontmatter
 3. Ship it
 
-An ordered list can also start from a specific number, and mix in other list
-types as it nests:
+An ordered list can **start from a specific number** (the first item's number
+wins) and mix in other list types as it nests:
 
 3. This item is numbered three,
 4. and this one four —
    - with an unordered branch,
    - hanging off of it.
 
-Task lists from GFM render as checkboxes:
+**Task lists** (GFM) render as checkboxes with `- [ ]` and `- [x]`:
+
+```md
+- [x] Headings, emphasis, and lists
+- [ ] Anything we haven't built yet
+```
 
 - [x] Headings, emphasis, and lists
 - [x] Tables and footnotes
 - [x] Syntax highlighting
 - [ ] Anything we haven't built yet
 
+**Edge case — tight vs. loose.** Items with no blank line between them render
+tightly (no `<p>` wrapper, less spacing). Put a blank line between items and the
+whole list becomes "loose," wrapping each item in a paragraph with more room
+around it.
+
 ## Horizontal rules
 
-Three dashes on their own line draw a divider between stretches of content:
+Three or more `-`, `*`, or `_` on their own line draw a divider. **Keep a blank
+line above it:**
+
+```md
+Content above the break.
+
+---
+
+Content below the break.
+```
 
 Content above the break.
 
@@ -135,9 +316,23 @@ Content above the break.
 
 Content below the break.
 
+**Edge case — the accidental heading.** A `---` line placed _directly_ under a
+paragraph, with no blank line, is not a rule — CommonMark reads it as an
+underlined `h2` and turns the paragraph above into a heading. The blank line is
+what keeps it a divider.
+
 ## Tables
 
-Columns align with colons in the divider row — left, center, or right:
+A header row, a delimiter row, and any number of body rows. Colons in the
+delimiter set column alignment — left (`:--`), center (`:-:`), or right (`--:`):
+
+```md
+| Feature       |   Source   |         Alignment |
+| :------------ | :--------: | ----------------: |
+| Tables        | remark-gfm |    left / default |
+| Strikethrough | remark-gfm | centered ~~text~~ |
+| Footnotes     | remark-gfm | right, at the end |
+```
 
 | Feature       |   Source   |         Alignment |
 | :------------ | :--------: | ----------------: |
@@ -146,24 +341,42 @@ Columns align with colons in the divider row — left, center, or right:
 | Footnotes     | remark-gfm | right, at the end |
 | Tabs          |    MDX     |    `:::tabs` here |
 
-Cells accept inline formatting — emphasis, `code`, and links all work — but not
-block-level content like lists or multiple paragraphs.
+Cells take inline formatting — emphasis, `code`, and links all work — but **not**
+block content like lists or multiple paragraphs. To put a literal pipe inside a
+cell, escape it as `\|`. The outer border pipes are optional but keep the source
+readable.
 
 ## Footnotes
 
-Footnotes let you attach an aside without breaking the sentence's flow[^1]. They
-can be referenced more than once, and each one links back up to where it was
-cited[^2].
+Footnotes (GFM) attach an aside without breaking the sentence's flow[^1]. Mark a
+reference with `[^label]` and define it anywhere in the file; definitions are
+collected at the bottom no matter where you write them. A footnote can be
+referenced more than once[^2], and each gets a link back to where it was cited.
+
+```md
+Attach an aside without breaking flow[^note].
+
+[^note]: The definition can live anywhere — it renders at the bottom.
+```
 
 ## Code blocks
 
-Everything below is syntax-highlighted at build time by Shiki, so the browser
-only ever receives finished HTML — no highlighter ships to the client.
+Code is syntax-highlighted at build time by Shiki, so the browser receives only
+finished HTML. Every block gets a copy button: it sits in the header bar on
+titled blocks and floats over the code (on hover) otherwise, and it copies the
+block's _end state_ — markers stripped, diff-removed lines skipped.
 
 ### Language tags
 
-Add a language after the opening fence to get real token colors. Any language
-Shiki knows works — here are a few:
+Name the language after the opening fence for real token colors:
+
+````md
+```ts
+export function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+````
 
 ```ts
 export function greet(name: string): string {
@@ -179,14 +392,11 @@ export function greet(name: string): string {
 ```
 
 ```json
-{
-  "name": "devsantara",
-  "private": true,
-  "type": "module"
-}
+{ "name": "devsantara", "private": true, "type": "module" }
 ```
 
-A fence with no language falls back to plain text — good for terminal output:
+A fence with **no language** falls back to plain text — good for terminal
+output:
 
 ```
 $ vp build
@@ -195,19 +405,31 @@ $ vp build
 
 ### Titles
 
-Fence meta `title="..."` adds a header bar with the filename and a permanent
+The fence meta `title="..."` adds a header bar with the filename and a permanent
 copy button:
 
+````md
 ```ts title="src/modules/markdown/greet.ts"
-export function greet(name: string): string {
-  return `Hello, ${name}!`;
-}
+export const greet = (name: string) => `Hello, ${name}!`;
+```
+````
+
+```ts title="src/modules/markdown/greet.ts"
+export const greet = (name: string) => `Hello, ${name}!`;
 ```
 
 ### Line and word highlights
 
-`{2}` highlights a whole line by number and accepts ranges like `{1,3-4}`;
-`/answer/` highlights every occurrence of a word:
+`{2}` highlights a line by number and takes ranges like `{1,3-4}`. `/word/`
+highlights every occurrence of that word:
+
+````md
+```ts {2} /answer/
+const question = 'life, the universe, everything';
+const answer = 6 * 7;
+console.log(`${question} = ${answer}`);
+```
+````
 
 ```ts {2} /answer/
 const question = 'life, the universe, everything';
@@ -217,8 +439,17 @@ console.log(`${question} = ${answer}`);
 
 ### Line numbers
 
-Numbers are opt-in per fence with `showLineNumbers`. Add a count in braces —
-`showLineNumbers{40}` — to start from a different line:
+Line numbers are opt-in per fence with `showLineNumbers`. Add a count in braces —
+`showLineNumbers{40}` — to start from a different number:
+
+````md
+```ts showLineNumbers{40}
+export function fibonacci(n: number): number {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+```
+````
 
 ```ts showLineNumbers{40}
 export function fibonacci(n: number): number {
@@ -229,9 +460,9 @@ export function fibonacci(n: number): number {
 
 ### Diffs
 
-`// [!code ++]` and `// [!code --]` mark added and removed lines while keeping
-the language's own colors. The markers never render, and the copy button copies
-the end state — removed lines are skipped:
+A trailing `[!code ++]` comment marks an added line and `[!code --]` a removed
+one. The markers never render, and the copy button copies the result without the
+removed lines:
 
 ```ts title="src/modules/post/post.fn.tsx"
 export function getPost(slug: string) {
@@ -243,7 +474,7 @@ export function getPost(slug: string) {
 
 ### Focus
 
-`// [!code focus]` dims everything else until you hover the block:
+A `[!code focus]` comment dims everything else until you hover the block:
 
 ```ts
 export function getPost(slug: string) {
@@ -254,7 +485,7 @@ export function getPost(slug: string) {
 
 ### Errors and warnings
 
-`// [!code error]` and `// [!code warning]` tint a line the way an editor's
+`[!code error]` and `[!code warning]` tint a line the way an editor's
 diagnostics would:
 
 ```ts
@@ -265,8 +496,8 @@ console.log('debug output'); // [!code warning]
 
 ### Indent guides
 
-Nested code gets faint vertical guides down each level of indentation,
-automatically — no meta required:
+Nested code gets faint vertical guides at each indent level, automatically — no
+meta needed:
 
 ```ts
 export function walk(node: Node) {
@@ -280,29 +511,43 @@ export function walk(node: Node) {
 }
 ```
 
+### Combining meta
+
+Meta stacks. A single fence can carry a title, line numbers, line highlights,
+word highlights, and `[!code]` comments at once:
+
+```ts title="src/config.ts" showLineNumbers {3} /timeout/
+export const config = {
+  retries: 3,
+  timeout: 5_000, // [!code warning]
+  baseUrl: 'https://api.example.com',
+};
+```
+
 ### Inline code highlighting
 
-Inline code opts into highlighting with a trailing language marker, so
-`const answer = 42{:ts}` gets real token colors right inside a sentence. The
-syntax is a language name after a colon at the end of the code span:
+Inline code opts into highlighting with a trailing `{:lang}` marker, so a token
+gets real colors mid-sentence:
 
 ```md
 Inline code highlights with `const answer = 42{:ts}`.
 ```
 
+Inline code highlights with `const answer = 42{:ts}`. Without the marker,
+`const answer = 42` stays plain.
+
 ## Tabs
 
-`:::tabs` groups content into tabs. Each `::tab[Label]` marker starts a tab, and
-anything can follow it — a fence, prose, a list, or a mix. Note there's no space
-after the opening colons, and fence meta like `title="..."` keeps working inside
-a tab:
+`:::tabs` groups content into a tabbed panel. Each `::tab[Label]` marker starts a
+tab, and **anything** can follow it — a fence, prose, a list, or a mix. Note
+there's no space after the `::` colons:
 
 ````md
 :::tabs
 
 ::tab[pnpm]
 
-```bash title="terminal"
+```bash
 pnpm add shiki
 ```
 
@@ -315,7 +560,7 @@ npm install shiki
 :::
 ````
 
-Which renders as:
+Renders as:
 
 :::tabs
 
@@ -339,7 +584,7 @@ bun add shiki
 
 :::
 
-Tabs aren't limited to code. Here prose and a list share a group:
+Tabs aren't limited to code — here prose and a list share a group:
 
 :::tabs
 
@@ -355,28 +600,40 @@ pnpm add shiki
 
 Then wire it into the config:
 
-- open `vite.config.ts`
-- add the plugin to the `plugins` array
-- restart the dev server
+- open `vite.config.ts`,
+- add the plugin to the `plugins` array,
+- restart the dev server.
 
 :::
 
+**Edge cases — the build fails loudly** if a tab group is malformed, so you find
+out at compile time rather than shipping something broken:
+
+- `:::tabs` must contain at least one `::tab[Label]` marker.
+- Every `::tab[...]` needs a non-empty label _and_ at least one block of content.
+- Content can't appear before the first `::tab` marker.
+- `::tab` outside a `:::tabs` container is an error.
+- Any other directive name (e.g. `:::note`) is rejected — `tabs` is the only one.
+
 ## Escapes and literal characters
 
-A backslash makes the next character literal, so Markdown punctuation shows up
-as plain text instead of doing its usual job — writing `\*asterisks\*` gives you
+A backslash makes the next character literal, so Markdown punctuation shows up as
+plain text instead of doing its usual job. Writing `\*asterisks\*` gives
 \*asterisks\* rather than emphasis.
 
-Because this site parses `:::` directives (that's how tabs are built), a stray
-colon-word is turned back into plain text for you. CSS pseudo-classes like
-:hover and selectors like :root render literally in prose — no escaping needed.
+Because this site also parses `:::` directives, a stray colon-word is turned back
+into plain text for you — no escaping needed. CSS pseudo-classes like :hover and
+selectors like :root render literally in prose.
 
-To put a literal backtick inside inline code, wrap the span in a longer run of
-backticks: ``here's a ` backtick`` stays intact.
+To show a literal backtick inside inline code, wrap the span in a longer run of
+backticks, padding with spaces. To show a literal fenced code block inside another
+one — as this guide does throughout — open the outer fence with **four**
+backticks so the inner three-backtick fence is treated as content.
 
 [^1]:
-    Like this — a short note that lives at the bottom of the post but reads
-    as if it were right here.
+    Like this — a short note that lives at the bottom of the post but reads as if
+    it were right here. A footnote definition can even span multiple paragraphs
+    if you indent its continuation lines.
 
 [^2]:
     Every footnote gets a return arrow that jumps back to its reference, so

@@ -61,6 +61,7 @@ export const getSeriesBySlugFn = createServerFn({ method: 'GET' })
       thumbnail: parseThumbnail(series.thumbnail),
       lastModification: series.lastModification,
       posts,
+      toc: series.toc,
       mdx: await renderServerComponent(<MarkdownRender content={series.mdx} />),
     };
   });
@@ -87,6 +88,7 @@ export const getSeriesPostFn = createServerFn({ method: 'GET' })
       thumbnail: parseThumbnail(post.thumbnail ?? series?.thumbnail ?? null),
       lastModification: post.lastModification,
       series: { slug: post.seriesSlug },
+      toc: post.toc,
       mdx: await renderServerComponent(<MarkdownRender content={post.mdx} />),
     };
   });

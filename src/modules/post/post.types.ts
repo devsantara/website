@@ -2,6 +2,7 @@ import type { RenderableServerComponent } from '@tanstack/react-start/rsc';
 import type { JSX } from 'react/jsx-runtime';
 import * as z from 'zod/v4';
 
+import type { TableOfContents } from '#/modules/markdown/markdown.types';
 import type { postFrontmatterSchema } from '#/modules/post/post.schema';
 
 export type PostFrontmatter = z.infer<typeof postFrontmatterSchema>;
@@ -12,5 +13,6 @@ export interface PostItem extends PostFrontmatter {
 }
 
 export interface PostContent extends PostItem {
+  toc: TableOfContents;
   mdx: RenderableServerComponent<JSX.Element>;
 }

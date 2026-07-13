@@ -40,6 +40,7 @@ export const getPostBySlugFn = createServerFn({ method: 'GET' })
       tags: post.tags,
       thumbnail: parseThumbnail(post.thumbnail),
       lastModification: post.lastModification,
+      toc: post.toc,
       mdx: await renderServerComponent(<MarkdownRender content={post.mdx} />),
     };
   });

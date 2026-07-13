@@ -3,6 +3,13 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 
 import { createDefaultImport } from '@content-collections/core';
+import type { Nodes } from 'hast';
+import { fromMarkdown } from 'mdast-util-from-markdown';
+import { toHast } from 'mdast-util-to-hast';
+import rehypeSlug from 'rehype-slug';
+import { visit } from 'unist-util-visit';
+
+import type { TableOfContents } from '#/modules/markdown/markdown.types';
 
 const execFile = promisify(syncExecFile);
 
@@ -45,4 +52,50 @@ export function resolveAsset(src: string, contentSubDir: string) {
   if (!src.startsWith('.')) return src;
   const assetPath = path.posix.join(contentSubDir, src);
   return createDefaultImport<string>(`#/content/${assetPath}`);
+}
+
+/** Concatenates a hast subtree's text — the same content `rehype-slug` slugs. */
+function textContent(node: Nodes): string {
+  if (node.type === 'text') return node.value;
+  if ('children' in node) return node.children.map(textContent).join('');
+  return '';
+}
+
+/**
+ * Builds a document's table of contents from its Markdown headings, as plain
+ * data (`{ depth, title, id }`) rather than rendered nodes — so a page can
+ * lay the entries out however it likes (`post.toc[0].title`,
+ * `post.toc[0].id`), in a sidebar, inline, or nested list.
+ *
+ * `id` is the heading's slug: we run the very same `rehype-slug` the
+ * render pipeline uses (see `markdown.vite.ts`) over the same headings, then read
+ * the stamped `id` back off each one — so a `#id` link always lands on its
+ * heading, duplicate titles and all, with no second slug implementation to drift.
+ *
+ * Takes the raw `.mdx` source (the caller reads it off disk — the
+ * `frontmatter-only` Content Collections parser never exposes the body — and
+ * memoizes this on that content). Build-only: it lives beside the other build
+ * helpers so its Markdown-parsing dependencies stay out of the runtime bundle
+ * (this module is reached only from the config's Node-side `transform`).
+ */
+export async function extractTableOfContents(content: string): Promise<TableOfContents> {
+  // Content Collections strips the frontmatter through its own parser, but the
+  // caller hands us the raw file, so drop the leading `---` … `---` block first —
+  // otherwise its closing fence parses as a setext underline and turns the last
+  // YAML line into a phantom heading.
+  const body = content.replace(/^\uFEFF?---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
+  const tree = toHast(fromMarkdown(body)) as Nodes;
+  // Stamp heading `id`s in place, exactly as the render pipeline does.
+  rehypeSlug()(tree as never);
+
+  const toc: TableOfContents = [];
+  visit(tree, 'element', (node) => {
+    const match = /^h([1-6])$/.exec(node.tagName);
+    if (!match) return;
+    const title = textContent(node).trim();
+    const id = typeof node.properties.id === 'string' ? node.properties.id : '';
+    if (!title || !id) return;
+    toc.push({ depth: Number(match[1]), title, id });
+  });
+  return toc;
 }

@@ -1,11 +1,16 @@
 import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { WriterHook } from '@content-collections/core';
 import { createDefaultImport, defineCollection, defineConfig } from '@content-collections/core';
 import type { MDXContent } from 'mdx/types';
 
-import { getLastModification, resolveAsset } from '#/modules/markdown/markdown.utils';
+import {
+  extractTableOfContents,
+  getLastModification,
+  resolveAsset,
+} from '#/modules/markdown/markdown.utils';
 import { postFrontmatterSchema } from '#/modules/post/post.schema';
 import {
   seriesFrontmatterSchema,
@@ -23,16 +28,19 @@ const posts = defineCollection({
   transform: async (document, ctx) => {
     const slug = document._meta.path;
     const filePath = document._meta.filePath;
-    const lastModification = await ctx.cache(
-      path.join(CONTENT_DIRECTORY, '/posts', filePath),
-      getLastModification,
-    );
+    const contentPath = path.join(CONTENT_DIRECTORY, '/posts', filePath);
+    const lastModification = await ctx.cache(contentPath, getLastModification);
+    const raw = await readFile(contentPath, 'utf-8');
+    // Cache the parse on the file's content (a distinct `key` from the
+    // path-keyed `getLastModification` above), so it recomputes when the body's
+    // headings change and never collides with that sibling cache entry.
+    const toc = await ctx.cache(raw, extractTableOfContents, { key: 'toc' });
     const mdx = createDefaultImport<MDXContent>(`#/content/posts/${filePath}`);
     const contentSubDir = path.posix.join('posts', path.posix.dirname(filePath));
     const thumbnail = document.thumbnail
       ? { ...document.thumbnail, src: resolveAsset(document.thumbnail.src, contentSubDir) }
       : null;
-    return { ...document, slug, mdx, lastModification, thumbnail };
+    return { ...document, slug, mdx, lastModification, thumbnail, toc };
   },
 });
 
@@ -45,16 +53,19 @@ const series = defineCollection({
   transform: async (document, ctx) => {
     const filePath = document._meta.filePath;
     const slug = document._meta.directory;
-    const lastModification = await ctx.cache(
-      path.join(CONTENT_DIRECTORY, '/series', filePath),
-      getLastModification,
-    );
+    const contentPath = path.join(CONTENT_DIRECTORY, '/series', filePath);
+    const lastModification = await ctx.cache(contentPath, getLastModification);
+    const raw = await readFile(contentPath, 'utf-8');
+    // Cache the parse on the file's content (a distinct `key` from the
+    // path-keyed `getLastModification` above), so it recomputes when the body's
+    // headings change and never collides with that sibling cache entry.
+    const toc = await ctx.cache(raw, extractTableOfContents, { key: 'toc' });
     const mdx = createDefaultImport<MDXContent>(`#/content/series/${filePath}`);
     const contentSubDir = path.posix.join('series', path.posix.dirname(filePath));
     const thumbnail = document.thumbnail
       ? { ...document.thumbnail, src: resolveAsset(document.thumbnail.src, contentSubDir) }
       : null;
-    return { ...document, slug, mdx, lastModification, thumbnail };
+    return { ...document, slug, mdx, lastModification, thumbnail, toc };
   },
 });
 
@@ -76,16 +87,19 @@ const seriesPost = defineCollection({
     }
     const [_, orderPrefix, slug] = match;
     const order = Number(orderPrefix);
-    const lastModification = await ctx.cache(
-      path.join(CONTENT_DIRECTORY, '/series', filePath),
-      getLastModification,
-    );
+    const contentPath = path.join(CONTENT_DIRECTORY, '/series', filePath);
+    const lastModification = await ctx.cache(contentPath, getLastModification);
+    const raw = await readFile(contentPath, 'utf-8');
+    // Cache the parse on the file's content (a distinct `key` from the
+    // path-keyed `getLastModification` above), so it recomputes when the body's
+    // headings change and never collides with that sibling cache entry.
+    const toc = await ctx.cache(raw, extractTableOfContents, { key: 'toc' });
     const mdx = createDefaultImport<MDXContent>(`#/content/series/${filePath}`);
     const contentSubDir = path.posix.join('series', path.posix.dirname(filePath));
     const thumbnail = document.thumbnail
       ? { ...document.thumbnail, src: resolveAsset(document.thumbnail.src, contentSubDir) }
       : null;
-    return { ...document, slug, seriesSlug, order, mdx, lastModification, thumbnail };
+    return { ...document, slug, seriesSlug, order, mdx, lastModification, thumbnail, toc };
   },
   onSuccess: (documents) => {
     const ordersBySeries = new Map<string, Set<number>>();

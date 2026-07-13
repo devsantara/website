@@ -2,6 +2,7 @@ import type { RenderableServerComponent } from '@tanstack/react-start/rsc';
 import type { JSX } from 'react/jsx-runtime';
 import * as z from 'zod/v4';
 
+import type { TableOfContents } from '#/modules/markdown/markdown.types';
 import type {
   seriesFrontmatterSchema,
   seriesPostFrontmatterSchema,
@@ -17,6 +18,7 @@ export interface SeriesItem extends SeriesFrontmatter {
 
 export interface SeriesContent extends SeriesItem {
   posts: SeriesPostItem[];
+  toc: TableOfContents;
   mdx: RenderableServerComponent<JSX.Element>;
 }
 
@@ -30,5 +32,6 @@ export interface SeriesPostItem extends SeriesPostFrontmatter {
 }
 
 export interface SeriesPostContent extends SeriesPostItem {
+  toc: TableOfContents;
   mdx: RenderableServerComponent<JSX.Element>;
 }

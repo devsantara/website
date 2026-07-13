@@ -79,12 +79,14 @@ code[data-theme] span {
   border-inline-start: 2px solid transparent;
 }
 
-/* Title header (fence meta: title="...") */
+/* Title header (fence meta: title="...").
+ * A block box (not flex) so text-overflow can truncate a long filename with an
+ * ellipsis on narrow screens; line-height centers the single line, and the
+ * right padding keeps the ellipsis clear of the copy button. */
 [data-rehype-pretty-code-title] {
-  display: flex;
-  align-items: center;
-  min-height: 2.5rem;
-  padding: 0.5rem 2.75rem 0.5rem 1rem;
+  height: 2.5rem;
+  padding-inline: 1rem 2.75rem;
+  line-height: 2.375rem;
   border: 1px solid var(--color-border);
   border-bottom: none;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -92,6 +94,9 @@ code[data-theme] span {
   color: var(--color-muted-foreground);
   font-family: var(--font-mono);
   font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 [data-rehype-pretty-code-title] ~ pre {

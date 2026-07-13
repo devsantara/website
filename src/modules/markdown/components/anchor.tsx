@@ -1,0 +1,45 @@
+import { Link } from '@tanstack/react-router';
+import * as React from 'react';
+
+/**
+ * Whether `href` points inside this app and should use client-side routing.
+ *
+ * Absolute in-app paths (`/posts/...`) qualify; everything else — external
+ * URLs, protocol-relative (`//host`), `mailto:`/`tel:`, and hash-only links —
+ * does not, so the browser handles it natively.
+ */
+function isInternalLink(href: string) {
+  return href.startsWith('/') && !href.startsWith('//');
+}
+
+/**
+ * Whether `href` is a same-page fragment (`#section`). Heading permalinks
+ * (rehype-autolink-headings) and author-written anchors both produce these.
+ */
+function isHashLink(href: string) {
+  return href.startsWith('#');
+}
+
+/**
+ * Renders markdown links (`a`) with app-aware behavior: internal paths
+ * ({@link isInternalLink}) navigate through TanStack Router's client-side
+ * `Link`, same-page fragments ({@link isHashLink}) use a plain native anchor so
+ * the browser scrolls in place, and everything else falls back to a native
+ * anchor that opens in a new, isolated tab.
+ */
+export function Anchor({ href = '', ...props }: React.ComponentProps<'a'>) {
+  if (isInternalLink(href)) {
+    return <Link to={href} {...props} />;
+  }
+
+  // Hash links must stay on the page: without this they'd fall through to the
+  // external branch below and open the fragment in a blank new tab.
+  if (isHashLink(href)) {
+    return <a href={href} {...props} />;
+  }
+
+  // External links open in a new tab; `rel` drops the `window.opener` reference
+  // (noopener) and withholds the referrer (noreferrer) so the target page can't
+  // reach back into this one.
+  return <a href={href} {...props} target="_blank" rel="noopener noreferrer" />;
+}

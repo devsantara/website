@@ -241,6 +241,53 @@ another — prefix each nested level with another `>`:
 >
 > > Like this one, tucked one level deeper.
 
+## Alerts
+
+Alerts (also called callouts or admonitions) emphasize information that's easy to
+miss. They use GitHub's syntax: a blockquote whose **first line** is a bracketed
+type marker, followed by the content on the lines below. Five types are
+available, each with its own color and icon:
+
+```md
+> [!NOTE]
+> Useful information that users should know, even when skimming.
+```
+
+> [!NOTE]
+> Useful information that users should know, even when skimming.
+
+> [!TIP]
+> Helpful advice for doing things better or more easily.
+
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
+
+> [!WARNING]
+> Urgent info that needs immediate attention to avoid problems.
+
+> [!CAUTION]
+> Advises about risks or negative outcomes of certain actions.
+
+An alert body is a normal blockquote, so it can hold more than one line —
+including other blocks like lists and `inline code`:
+
+> [!TIP]
+> Reach for an alert sparingly:
+>
+> - one or two per post, at most,
+> - never two back to back,
+> - and only when the reader really needs to stop and read it.
+
+**Use them sparingly.** Limit yourself to one or two per post, don't stack them
+back to back, and reserve them for information that genuinely warrants the
+interruption — overusing alerts trains readers to skip them.
+
+**Edge case — the marker must be exact.** The type is case-sensitive and must be
+one of the five names in uppercase; `[!note]` or `[!HINT]` renders as an ordinary
+blockquote. The marker also has to sit alone on the first line — `> [!NOTE] text`
+all on one line is not an alert. Alerts don't nest, either: a marker inside an
+alert's body is just text.
+
 ## Lists
 
 **Unordered** lists use `-`, `*`, or `+` (pick one and keep it consistent).

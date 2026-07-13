@@ -20,6 +20,7 @@ import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import type { Plugin } from 'vite';
 
 import { rehypeImage } from '#/modules/markdown/plugins/rehype-image';
+import { remarkAlert } from '#/modules/markdown/plugins/remark-alert';
 import { remarkTabs } from '#/modules/markdown/plugins/remark-tabs';
 
 /**
@@ -67,8 +68,8 @@ const rehypeAutolinkHeadingsOptions: RehypeAutolinkHeadingsOptions = {
 
 /**
  * Vite plugin that compiles `.mdx` files through the project's remark/rehype
- * pipeline: frontmatter handling, GFM, the `:::tabs` directive
- * (`remarkTabs`), and Shiki syntax highlighting
+ * pipeline: frontmatter handling, GFM, GitHub-style alerts (`remarkAlert`), the
+ * `:::tabs` directive (`remarkTabs`), and Shiki syntax highlighting
  * (`rehypePrettyCodeOptions`).
  */
 export function viteMdx(): Plugin {
@@ -82,6 +83,9 @@ export function viteMdx(): Plugin {
         remarkFrontmatter,
         remarkMdxFrontmatter,
         remarkGfm,
+        // `remarkAlert` reads the blockquotes GFM produced; it must run after
+        // `remarkGfm` and is independent of the `:::` directive passes below.
+        remarkAlert,
         remarkDirective,
         remarkTabs,
       ],

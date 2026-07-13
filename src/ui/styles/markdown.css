@@ -316,3 +316,77 @@ code[data-theme] span {
   margin-block: 0;
   min-width: 32rem;
 }
+
+/*
+ * Alerts / callouts (remark-alert) — GitHub-style blockquote alerts.
+ *
+ * `remark-alert` rewrites a `> [!NOTE]`-style blockquote into a `<Callout>`,
+ * which renders a plain `div[data-callout]` — so @tailwindcss/typography's
+ * blockquote rules never touch it. Following GitHub, there's no filled box: just
+ * an accent left border and an accent title. Each type sets its own
+ * `--callout-accent`; the `.dark` overrides lift it for contrast on the dark
+ * surface.
+ */
+.prose [data-callout] {
+  margin-block: 1.7142857em;
+  padding-block: 0.25rem;
+  padding-inline-start: 1em;
+  border-inline-start: 3px solid var(--callout-accent);
+}
+
+.prose [data-callout-title] {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-block: 0 0.5em;
+  color: var(--callout-accent);
+  font-weight: 600;
+}
+
+.prose [data-callout-title] svg {
+  width: 1.15em;
+  height: 1.15em;
+  flex-shrink: 0;
+}
+
+/* Keep the body flush with the padding box: no gap above the first block after
+   the title, none below the last. */
+.prose [data-callout] > [data-callout-title] + * {
+  margin-top: 0;
+}
+
+.prose [data-callout] > :last-child {
+  margin-bottom: 0;
+}
+
+.prose [data-callout='note'] {
+  --callout-accent: oklch(0.55 0.2 255);
+}
+.prose [data-callout='tip'] {
+  --callout-accent: oklch(0.58 0.17 149.214);
+}
+.prose [data-callout='important'] {
+  --callout-accent: oklch(0.55 0.22 300);
+}
+.prose [data-callout='warning'] {
+  --callout-accent: oklch(0.62 0.14 75);
+}
+.prose [data-callout='caution'] {
+  --callout-accent: oklch(0.577 0.245 27.325);
+}
+
+.dark .prose [data-callout='note'] {
+  --callout-accent: oklch(0.72 0.16 255);
+}
+.dark .prose [data-callout='tip'] {
+  --callout-accent: oklch(0.72 0.17 149.214);
+}
+.dark .prose [data-callout='important'] {
+  --callout-accent: oklch(0.75 0.16 300);
+}
+.dark .prose [data-callout='warning'] {
+  --callout-accent: oklch(0.8 0.14 75);
+}
+.dark .prose [data-callout='caution'] {
+  --callout-accent: oklch(0.704 0.191 22.216);
+}

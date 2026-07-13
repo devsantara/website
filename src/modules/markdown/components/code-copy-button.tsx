@@ -44,7 +44,7 @@ export function CodeCopyButton() {
   return (
     <Button
       type="button"
-      variant="ghost"
+      variant="secondary"
       size="icon-xs"
       aria-label="Copy code"
       data-copy-button

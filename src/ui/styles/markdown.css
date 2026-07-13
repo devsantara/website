@@ -48,6 +48,32 @@ code[data-theme] span {
   line-height: 1.7;
 }
 
+/* Thin horizontal scrollbar for overflowing code on desktop (fine) pointers;
+   touch devices keep their native overlay scrollbars (see `@media (hover: none)`). */
+@media (hover: hover) {
+  [data-rehype-pretty-code-figure] pre {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-foreground) 20%, transparent) transparent;
+  }
+
+  [data-rehype-pretty-code-figure] pre::-webkit-scrollbar {
+    height: 0.375rem;
+  }
+
+  [data-rehype-pretty-code-figure] pre::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  [data-rehype-pretty-code-figure] pre::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-lg);
+    background-color: color-mix(in oklab, var(--color-foreground) 20%, transparent);
+  }
+
+  [data-rehype-pretty-code-figure] pre::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklab, var(--color-foreground) 35%, transparent);
+  }
+}
+
 [data-rehype-pretty-code-figure] code [data-line] {
   padding-inline: 0.05rem;
   border-inline-start: 2px solid transparent;

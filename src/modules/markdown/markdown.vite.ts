@@ -6,9 +6,13 @@ import {
   transformerNotationFocus,
   transformerRenderIndentGuides,
 } from '@shikijs/transformers';
+import rehypeAutolinkHeadings, {
+  type Options as RehypeAutolinkHeadingsOptions,
+} from 'rehype-autolink-headings';
 import rehypeMdxImportMedia from 'rehype-mdx-import-media';
 import type { Options as RehypePrettyCodeOptions } from 'rehype-pretty-code';
 import rehypePrettyCode from 'rehype-pretty-code';
+import rehypeSlug from 'rehype-slug';
 import remarkDirective from 'remark-directive';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
@@ -48,6 +52,20 @@ const rehypePrettyCodeOptions: RehypePrettyCodeOptions = {
 };
 
 /**
+ * rehype-autolink-headings configuration. `rehypeSlug` stamps a stable `id` on
+ * every heading (derived from its text); this then appends a hover-revealed `#`
+ * permalink inside each heading that deep-links to that `id`. The generated
+ * `<a href="#id">` renders through the `Anchor` override, which routes hash
+ * links to a plain same-page anchor (not a new tab). `markdown.css` owns the
+ * reveal-on-hover styling and the `scroll-margin-top` landing offset.
+ */
+const rehypeAutolinkHeadingsOptions: RehypeAutolinkHeadingsOptions = {
+  behavior: 'append',
+  properties: { className: ['heading-anchor'], ariaLabel: 'Permalink to this heading' },
+  content: { type: 'text', value: '#' },
+};
+
+/**
  * Vite plugin that compiles `.mdx` files through the project's remark/rehype
  * pipeline: frontmatter handling, GFM, the `:::tabs` directive
  * (`remarkTabs`), and Shiki syntax highlighting
@@ -73,6 +91,11 @@ export function viteMdx(): Plugin {
       // into a fingerprinted asset import.
       rehypePlugins: [
         [rehypePrettyCode, rehypePrettyCodeOptions],
+        // `rehypeSlug` must run before `rehypeAutolinkHeadings`, which links to
+        // the `id` it stamps. Both only touch headings, so their position
+        // relative to the code/image passes is immaterial.
+        rehypeSlug,
+        [rehypeAutolinkHeadings, rehypeAutolinkHeadingsOptions],
         rehypeImage,
         rehypeMdxImportMedia,
       ],

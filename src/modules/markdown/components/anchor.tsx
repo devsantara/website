@@ -13,14 +13,29 @@ function isInternalLink(href: string) {
 }
 
 /**
+ * Whether `href` is a same-page fragment (`#section`). Heading permalinks
+ * (rehype-autolink-headings) and author-written anchors both produce these.
+ */
+function isHashLink(href: string) {
+  return href.startsWith('#');
+}
+
+/**
  * Renders markdown links (`a`) with app-aware behavior: internal paths
  * ({@link isInternalLink}) navigate through TanStack Router's client-side
- * `Link`, while everything else falls back to a native anchor that opens in a
- * new, isolated tab.
+ * `Link`, same-page fragments ({@link isHashLink}) use a plain native anchor so
+ * the browser scrolls in place, and everything else falls back to a native
+ * anchor that opens in a new, isolated tab.
  */
 export function Anchor({ href = '', ...props }: React.ComponentProps<'a'>) {
   if (isInternalLink(href)) {
     return <Link to={href} {...props} />;
+  }
+
+  // Hash links must stay on the page: without this they'd fall through to the
+  // external branch below and open the fragment in a blank new tab.
+  if (isHashLink(href)) {
+    return <a href={href} {...props} />;
   }
 
   // External links open in a new tab; `rel` drops the `window.opener` reference

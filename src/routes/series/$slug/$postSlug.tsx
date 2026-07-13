@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 
 import { getSeriesPostFn } from '#/modules/series/series.fn';
 import { ThumbnailFigure } from '#/modules/thumbnail/components/thumbnail-figure';
+import { PageTableOfContents } from '#/modules/toc/components/table-of-contents';
 import { Badge } from '#/ui/components/core/badge';
 import { Separator } from '#/ui/components/core/separator';
 
@@ -44,6 +45,7 @@ function SeriesPostPage() {
         <Separator className="my-6" />
         <div className="prose dark:prose-invert">{post.mdx}</div>
       </article>
+      <PageTableOfContents toc={post.toc} />
     </main>
   );
 }

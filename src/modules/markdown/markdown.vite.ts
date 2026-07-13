@@ -1,4 +1,5 @@
 import mdx from '@mdx-js/rollup';
+import { transformerColorizedBrackets } from '@shikijs/colorized-brackets';
 import {
   transformerNotationDiff,
   transformerNotationErrorLevel,
@@ -42,6 +43,7 @@ const rehypePrettyCodeOptions: RehypePrettyCodeOptions = {
     transformerNotationFocus(),
     transformerNotationErrorLevel(),
     transformerRenderIndentGuides(),
+    transformerColorizedBrackets(),
   ],
 };
 

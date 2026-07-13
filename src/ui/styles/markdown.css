@@ -288,6 +288,17 @@ code[data-theme] span {
 }
 
 /*
+ * Footnote jump targets (remark-gfm). Mirror the heading `scroll-margin-top` so
+ * following a footnote reference (to its definition) or a back-reference arrow
+ * (`data-footnote-ref`, back to the reference) lands with a gap above it rather
+ * than flush against the viewport edge.
+ */
+.prose [data-footnotes] li,
+.prose [data-footnote-ref] {
+  scroll-margin-top: 2rem;
+}
+
+/*
  * Tables (GFM), wrapped in `[data-table-wrapper]` by the `Table` override.
  *
  * The wrapper is the horizontal scroll boundary and carries the block margin

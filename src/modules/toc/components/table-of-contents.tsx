@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { TableOfContents as TableOfContentsData } from '#/modules/markdown/markdown.types';
 import { useActiveHeadings } from '#/modules/toc/toc.hooks';
 import {
+  BEND_INSET,
   buildThreadPath,
   itemPaddingLeft,
   normalizeEntries,
@@ -63,24 +64,15 @@ export function TableOfContents({ toc, className, onNavigate }: TableOfContentsP
           ? { top: element.offsetTop, height: element.offsetHeight }
           : { top: 0, height: 0 };
       });
-      const centers = entries.map((entry, index) => ({
+      const items = entries.map((entry, index) => ({
         x: threadX(entry.level),
-        y: bounds[index].top + bounds[index].height / 2,
+        top: bounds[index].top,
+        bottom: bounds[index].top + bounds[index].height,
       }));
-      // Extend the rail from the first/last centers out to the top and bottom
-      // edges of those items, so it spans their full height rather than stopping
-      // at their midpoints. Same x as their item, so these are straight runs.
-      const first = bounds[0];
-      const last = bounds[bounds.length - 1];
-      const points = [
-        { x: centers[0].x, y: first.top },
-        ...centers,
-        { x: centers[centers.length - 1].x, y: last.top + last.height },
-      ];
       setGeometry({
         width: list.offsetWidth,
         height: list.offsetHeight,
-        path: buildThreadPath(points),
+        path: buildThreadPath(items),
         bounds,
       });
     };
@@ -143,7 +135,15 @@ export function TableOfContents({ toc, className, onNavigate }: TableOfContentsP
   );
 }
 
-/** Vertical span covering every active item, or `null` when none are active. */
+/**
+ * Vertical span covering every active item, or `null` when none are active.
+ * The span pulls in by {@link BEND_INSET} at both ends: the rail's bends sit
+ * within that distance of the edge between two items, so a lone active item
+ * reads as a straight line and a bend only shows when the items on both of
+ * its sides are active. Trimming both ends unconditionally — not just beside
+ * a bend — keeps every thumb the same height and centered on its items
+ * regardless of the neighbors' indent.
+ */
 function thumbRange(
   entries: { id: string }[],
   activeSet: Set<string>,
@@ -155,7 +155,10 @@ function thumbRange(
   if (activeIndexes.length === 0) return null;
   const first = bounds[activeIndexes[0]];
   const last = bounds[activeIndexes[activeIndexes.length - 1]];
-  return { top: first.top, bottom: last.top + last.height };
+  return {
+    top: first.top + BEND_INSET,
+    bottom: last.top + last.height - BEND_INSET,
+  };
 }
 
 /**

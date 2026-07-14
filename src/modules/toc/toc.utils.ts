@@ -51,38 +51,41 @@ export function itemPaddingLeft(level: number): number {
   return ITEM_PADDING_BASE + level * INDENT;
 }
 
-export interface Point {
+/** One TOC item's slice of the rail: its column `x` and vertical extent, in px. */
+export interface ThreadItem {
   x: number;
-  y: number;
+  top: number;
+  bottom: number;
 }
 
-// How far, in px, the rail runs straight down before and after the diagonal that
-// steps between columns. Kept small relative to the gap so the rail stays
-// vertical through most of a stepping segment and only angles across near the
-// middle. Capped below half the gap so the two vertical runs never overlap (and
-// the corners never invert) when items sit close together.
-const BEND_INSET = 8;
+// How far, in px, the diagonal that steps between columns extends above and
+// below the shared edge between two items. Keeping the bend this close to the
+// edge lets the thumb clip pull in by the same amount to hide a bend into an
+// inactive neighbor (see thumbRange in table-of-contents.tsx). Capped so the
+// diagonal never reaches past either item's midline when items are short.
+export const BEND_INSET = 8;
 
 /**
- * Builds the SVG path that threads through each item's point in order. Segments
- * between items at the same indent are straight verticals; a step to a different
- * indent leaves the previous column heading straight down, cuts across on a
- * straight diagonal, then arrives at the next column heading straight down. The
- * three segments meet at sharp corners — no rounding — so the bend reads as a
- * crisp edge rather than a curve.
+ * Builds the SVG path that threads through each item's vertical extent in
+ * order. Runs between items at the same indent are straight verticals; a step
+ * to a different indent stays vertical until just above the items' shared
+ * edge, cuts across on a straight diagonal centered on that edge, then resumes
+ * vertical just below it. The segments meet at sharp corners — no rounding —
+ * so the bend reads as a crisp edge rather than a curve.
  */
-export function buildThreadPath(points: Point[]): string {
-  if (points.length === 0) return '';
-  let path = `M${points[0].x} ${points[0].y}`;
-  for (let i = 1; i < points.length; i++) {
-    const previous = points[i - 1];
-    const current = points[i];
-    if (current.x === previous.x) {
-      path += ` L${current.x} ${current.y}`;
+export function buildThreadPath(items: ThreadItem[]): string {
+  if (items.length === 0) return '';
+  let path = `M${items[0].x} ${items[0].top}`;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const next = items[i + 1];
+    if (!next || next.x === item.x) {
+      path += ` L${item.x} ${item.bottom}`;
       continue;
     }
-    const inset = Math.min(BEND_INSET, (current.y - previous.y) * 0.4);
-    path += ` L${previous.x} ${previous.y + inset} L${current.x} ${current.y - inset} L${current.x} ${current.y}`;
+    const edge = (item.bottom + next.top) / 2;
+    const inset = Math.min(BEND_INSET, (edge - item.top) * 0.4, (next.bottom - edge) * 0.4);
+    path += ` L${item.x} ${edge - inset} L${next.x} ${edge + inset}`;
   }
   return path;
 }

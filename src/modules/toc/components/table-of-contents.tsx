@@ -1,31 +1,11 @@
-'use client';
-
-import { ListIcon } from 'lucide-react';
-import type { MouseEvent } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import * as React from 'react';
 
 import type { TableOfContents as TableOfContentsData } from '#/modules/markdown/markdown.types';
-import { useActiveHeadings } from '#/modules/toc/toc.hooks';
-import {
-  BEND_INSET,
-  buildThreadPath,
-  itemPaddingLeft,
-  normalizeEntries,
-  threadX,
-} from '#/modules/toc/toc.utils';
-import { buttonVariants } from '#/ui/components/core/button';
-import { Popover, PopoverContent, PopoverTrigger } from '#/ui/components/core/popover';
+import { useActiveHeadings, useRailGeometry } from '#/modules/toc/toc.hooks';
+import { itemPaddingLeft, normalizeEntries, thumbRange } from '#/modules/toc/toc.utils';
 import { cn } from '#/ui/utils';
 
-import { TocThumb, type ThumbRange } from './toc-thumb';
-
-/** Measured layout of the rendered list, in px, driving the SVG rail. */
-interface Geometry {
-  width: number;
-  height: number;
-  path: string;
-  bounds: { top: number; height: number }[];
-}
+import { TocThumb } from './toc-thumb';
 
 interface TableOfContentsProps {
   toc: TableOfContentsData;
@@ -38,59 +18,20 @@ interface TableOfContentsProps {
  * The "On this page" navigation: a list of h2/h3 links with a curved SVG rail
  * whose accented thumb follows the headings currently in view (see
  * {@link useActiveHeadings}). Rendered on its own in the desktop gutter and
- * inside the mobile popover by {@link PageTableOfContents}.
- *
- * The rail needs the list's real pixel layout, which only exists after mount, so
- * geometry is measured in an effect and re-measured on reflow — until then just
- * the links render, keeping server and first client render identical.
+ * inside the mobile popover by `PageTableOfContents`.
  */
 export function TableOfContents({ toc, className, onNavigate }: TableOfContentsProps) {
-  const entries = useMemo(() => normalizeEntries(toc), [toc]);
-  const ids = useMemo(() => entries.map((entry) => entry.id), [entries]);
+  const entries = React.useMemo(() => normalizeEntries(toc), [toc]);
+  const ids = React.useMemo(() => entries.map((entry) => entry.id), [entries]);
   const active = useActiveHeadings(ids);
-
-  const listRef = useRef<HTMLUListElement>(null);
-  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const [geometry, setGeometry] = useState<Geometry | null>(null);
-
-  useEffect(() => {
-    const list = listRef.current;
-    if (!list || entries.length === 0) return;
-
-    const measure = () => {
-      const bounds = entries.map((_, index) => {
-        const element = itemRefs.current[index];
-        return element
-          ? { top: element.offsetTop, height: element.offsetHeight }
-          : { top: 0, height: 0 };
-      });
-      const items = entries.map((entry, index) => ({
-        x: threadX(entry.level),
-        top: bounds[index].top,
-        bottom: bounds[index].top + bounds[index].height,
-      }));
-      setGeometry({
-        width: list.offsetWidth,
-        height: list.offsetHeight,
-        path: buildThreadPath(items),
-        bounds,
-      });
-    };
-
-    measure();
-    // Re-measure when the list reflows (fonts loading, breakpoint changes that
-    // toggle the desktop aside between display:none and flex).
-    const observer = new ResizeObserver(measure);
-    observer.observe(list);
-    return () => observer.disconnect();
-  }, [entries]);
+  const { listRef, itemRefs, rail } = useRailGeometry(entries);
 
   if (entries.length === 0) return null;
 
   const activeSet = new Set(active);
-  const thumb = geometry ? thumbRange(entries, activeSet, geometry.bounds) : null;
+  const thumb = rail ? thumbRange(entries, activeSet, rail.bounds) : null;
 
-  const handleClick = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     const target = document.getElementById(id);
     if (!target) return;
     event.preventDefault();
@@ -103,14 +44,7 @@ export function TableOfContents({ toc, className, onNavigate }: TableOfContentsP
 
   return (
     <nav aria-label="On this page" className={cn('relative text-sm', className)}>
-      {geometry && (
-        <TocThumb
-          width={geometry.width}
-          height={geometry.height}
-          path={geometry.path}
-          thumb={thumb}
-        />
-      )}
+      {rail && <TocThumb width={rail.width} height={rail.height} path={rail.path} thumb={thumb} />}
       <ul ref={listRef} className="relative">
         {entries.map((entry, index) => (
           <li
@@ -132,76 +66,5 @@ export function TableOfContents({ toc, className, onNavigate }: TableOfContentsP
         ))}
       </ul>
     </nav>
-  );
-}
-
-/**
- * Vertical span covering every active item, or `null` when none are active.
- * The span pulls in by {@link BEND_INSET} at both ends: the rail's bends sit
- * within that distance of the edge between two items, so a lone active item
- * reads as a straight line and a bend only shows when the items on both of
- * its sides are active. Trimming both ends unconditionally — not just beside
- * a bend — keeps every thumb the same height and centered on its items
- * regardless of the neighbors' indent.
- */
-function thumbRange(
-  entries: { id: string }[],
-  activeSet: Set<string>,
-  bounds: { top: number; height: number }[],
-): ThumbRange | null {
-  const activeIndexes = entries
-    .map((entry, index) => (activeSet.has(entry.id) ? index : -1))
-    .filter((index) => index !== -1);
-  if (activeIndexes.length === 0) return null;
-  const first = bounds[activeIndexes[0]];
-  const last = bounds[activeIndexes[activeIndexes.length - 1]];
-  return {
-    top: first.top + BEND_INSET,
-    bottom: last.top + last.height - BEND_INSET,
-  };
-}
-
-/**
- * Responsive shell placed once per article. On wide screens the TOC is fixed in
- * the gutter just right of the centered article; below `xl` — where that gutter
- * collapses — it becomes a floating "On this page" button opening the same list
- * in a popover. Renders nothing when the article has no h2/h3 headings.
- */
-export function PageTableOfContents({ toc }: { toc: TableOfContentsData }) {
-  const [open, setOpen] = useState(false);
-  const hasEntries = useMemo(() => normalizeEntries(toc).length > 0, [toc]);
-  if (!hasEntries) return null;
-
-  return (
-    <>
-      <aside className="toc-scroll fixed top-24 left-[calc(50%+23rem)] hidden max-h-[calc(100vh-8rem)] w-56 flex-col overflow-y-auto xl:flex">
-        <p className="text-muted-foreground mb-3 flex items-center gap-2 text-sm">
-          <ListIcon className="size-4" aria-hidden />
-          On this page
-        </p>
-        <TableOfContents toc={toc} />
-      </aside>
-
-      <div className="xl:hidden">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger
-            className={cn(
-              buttonVariants({ variant: 'outline', size: 'sm' }),
-              'fixed right-4 bottom-6 z-40 shadow-md',
-            )}
-          >
-            <ListIcon aria-hidden />
-            On this page
-          </PopoverTrigger>
-          <PopoverContent
-            side="top"
-            align="end"
-            className="toc-scroll max-h-[60vh] w-64 overflow-y-auto p-3"
-          >
-            <TableOfContents toc={toc} onNavigate={() => setOpen(false)} />
-          </PopoverContent>
-        </Popover>
-      </div>
-    </>
   );
 }

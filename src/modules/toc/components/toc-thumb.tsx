@@ -1,8 +1,4 @@
-/** Vertical span, in px, the highlighted thumb should cover along the rail. */
-export interface ThumbRange {
-  top: number;
-  bottom: number;
-}
+import type { ThumbRange } from '#/modules/toc/toc.types';
 
 interface TocThumbProps {
   width: number;

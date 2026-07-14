@@ -1,6 +1,7 @@
-'use client';
+import * as React from 'react';
 
-import { useEffect, useState } from 'react';
+import type { RailGeometry, TocEntry } from '#/modules/toc/toc.types';
+import { buildThreadPath, threadX } from '#/modules/toc/toc.utils';
 
 /** Whether two id lists hold the same ids in the same order. */
 function sameOrder(a: string[], b: string[]): boolean {
@@ -30,9 +31,9 @@ function sameOrder(a: string[], b: string[]): boolean {
  * it keys the effect.
  */
 export function useActiveHeadings(ids: string[]): string[] {
-  const [active, setActive] = useState<string[]>([]);
+  const [active, setActive] = React.useState<string[]>([]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (ids.length === 0) {
       setActive([]);
       return;
@@ -97,4 +98,56 @@ export function useActiveHeadings(ids: string[]): string[] {
   }, [ids]);
 
   return active;
+}
+
+/**
+ * Measures the rendered TOC list to produce the {@link RailGeometry} driving
+ * the SVG rail. The layout only exists after mount, so the rail starts `null` —
+ * callers render just the links until then, keeping server and first client
+ * render identical — and is re-measured on reflow (fonts loading, breakpoint
+ * changes that toggle the desktop aside between display:none and flex).
+ *
+ * Attach `listRef` to the `<ul>` and `itemRefs.current[index]` to each `<li>`,
+ * in `entries` order.
+ */
+export function useRailGeometry(entries: TocEntry[]): {
+  listRef: React.RefObject<HTMLUListElement | null>;
+  itemRefs: React.RefObject<(HTMLLIElement | null)[]>;
+  rail: RailGeometry | null;
+} {
+  const listRef = React.useRef<HTMLUListElement>(null);
+  const itemRefs = React.useRef<(HTMLLIElement | null)[]>([]);
+  const [rail, setRail] = React.useState<RailGeometry | null>(null);
+
+  React.useEffect(() => {
+    const list = listRef.current;
+    if (!list || entries.length === 0) return;
+
+    const measure = () => {
+      const bounds = entries.map((_, index) => {
+        const element = itemRefs.current[index];
+        return element
+          ? { top: element.offsetTop, height: element.offsetHeight }
+          : { top: 0, height: 0 };
+      });
+      const items = entries.map((entry, index) => ({
+        x: threadX(entry.level),
+        top: bounds[index].top,
+        bottom: bounds[index].top + bounds[index].height,
+      }));
+      setRail({
+        width: list.offsetWidth,
+        height: list.offsetHeight,
+        path: buildThreadPath(items),
+        bounds,
+      });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, [entries]);
+
+  return { listRef, itemRefs, rail };
 }

@@ -1,7 +1,11 @@
 import * as React from 'react';
 
 import type { TableOfContents as TableOfContentsData } from '#/modules/markdown/markdown.types';
-import { useActiveHeadings, useRailGeometry } from '#/modules/toc/toc.hooks';
+import {
+  useActiveHeadings,
+  useRailGeometry,
+  useScrollActiveIntoView,
+} from '#/modules/toc/toc.hooks';
 import { itemPaddingLeft, normalizeEntries, thumbRange } from '#/modules/toc/toc.utils';
 import { cn } from '#/ui/utils';
 
@@ -25,6 +29,12 @@ export function TableOfContents({ toc, className, onNavigate }: TableOfContentsP
   const ids = React.useMemo(() => entries.map((entry) => entry.id), [entries]);
   const active = useActiveHeadings(ids);
   const { listRef, itemRefs, rail } = useRailGeometry(entries);
+
+  // Follow the topmost active heading — the section being read — so the TOC
+  // scrolls to it when it drops below the container's own fold.
+  const activeIndex =
+    active.ids.length > 0 ? entries.findIndex((entry) => entry.id === active.ids[0]) : -1;
+  useScrollActiveIntoView(itemRefs, activeIndex);
 
   if (entries.length === 0) return null;
 

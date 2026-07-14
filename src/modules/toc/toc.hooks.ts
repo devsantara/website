@@ -115,6 +115,55 @@ export function useActiveHeadings(ids: string[]): ActiveHeadings {
   return active;
 }
 
+/** The nearest ancestor that actually scrolls vertically, or null if none does. */
+function scrollableAncestor(element: HTMLElement): HTMLElement | null {
+  for (let node = element.parentElement; node; node = node.parentElement) {
+    const overflowY = getComputedStyle(node).overflowY;
+    if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollHeight > node.clientHeight) {
+      return node;
+    }
+  }
+  return null;
+}
+
+/**
+ * Keeps the active TOC item centered in its own scroll container. A long
+ * article's list can outgrow the fixed desktop aside (or the mobile popover), so
+ * as the reader scrolls the page the container scrolls in step to hold the
+ * highlighted section on its vertical midline. The browser clamps this at the
+ * ends, so the first and last items still rest against the container's edges
+ * rather than being forced past them to reach the center.
+ *
+ * Scrolls only the nearest scrollable ancestor — never the window — so keeping
+ * pace with the reader inside the gutter can't nudge the article's own scroll
+ * position. A no-op while the list fits (the ancestor search skips containers
+ * tall enough to show everything) and while nothing is active (`activeIndex` of
+ * -1). Pass the same `itemRefs` attached to the `<li>`s, in `entries` order.
+ */
+export function useScrollActiveIntoView(
+  itemRefs: React.RefObject<(HTMLLIElement | null)[]>,
+  activeIndex: number,
+): void {
+  React.useEffect(() => {
+    if (activeIndex < 0) return;
+    const item = itemRefs.current[activeIndex];
+    if (!item) return;
+
+    const container = scrollableAncestor(item);
+    if (!container) return;
+
+    const itemRect = item.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    // Shift the container so the active item's midline meets the container's.
+    const delta =
+      itemRect.top + itemRect.height / 2 - (containerRect.top + container.clientHeight / 2);
+    if (Math.round(delta) === 0) return;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    container.scrollBy({ top: delta, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+  }, [itemRefs, activeIndex]);
+}
+
 /**
  * Measures the rendered TOC list to produce the {@link RailGeometry} driving
  * the SVG rail. The layout only exists after mount, so the rail starts `null` —

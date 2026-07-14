@@ -1,16 +1,19 @@
 import * as React from 'react';
 
-import type { RailGeometry, TocEntry } from '#/modules/toc/toc.types';
+import type { ActiveHeadings, RailGeometry, TocEntry } from '#/modules/toc/toc.types';
 import { buildThreadPath, threadX } from '#/modules/toc/toc.utils';
 
-/** Whether two id lists hold the same ids in the same order. */
-function sameOrder(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
+/** Whether two scroll states hold the same boundary flags and ids, in order. */
+function sameActive(a: ActiveHeadings, b: ActiveHeadings): boolean {
+  return (
+    a.atStart === b.atStart &&
+    a.atEnd === b.atEnd &&
+    a.ids.length === b.ids.length &&
+    a.ids.every((id, index) => id === b.ids[index])
+  );
 }
+
+const NOTHING_ACTIVE: ActiveHeadings = { ids: [], atStart: false, atEnd: false };
 
 /**
  * Tracks which headings are currently on screen, in document order, so the rail
@@ -25,17 +28,23 @@ function sameOrder(a: string[], b: string[]): boolean {
  * result is empty and the thumb hides: the highlight only shows while article
  * content is actually on screen.
  *
+ * Alongside the visible ids, reports the two boundary states the rail's dots
+ * mark: `atStart` while the reading position is still above the first heading
+ * (the first heading's top hasn't crossed the active band's top edge), and
+ * `atEnd` once the article's content bottom has scrolled into the viewport —
+ * the reader can see the end.
+ *
  * Reads live layout on scroll/resize (coalesced into an animation frame) instead
  * of caching offsets, so it stays correct as images load and reflow the article.
  * `ids` must be referentially stable across renders (memoize at the call site) —
  * it keys the effect.
  */
-export function useActiveHeadings(ids: string[]): string[] {
-  const [active, setActive] = React.useState<string[]>([]);
+export function useActiveHeadings(ids: string[]): ActiveHeadings {
+  const [active, setActive] = React.useState<ActiveHeadings>(NOTHING_ACTIVE);
 
   React.useEffect(() => {
     if (ids.length === 0) {
-      setActive([]);
+      setActive(NOTHING_ACTIVE);
       return;
     }
 
@@ -78,9 +87,15 @@ export function useActiveHeadings(ids: string[]): string[] {
         if (top < viewportHeight && nextTop > offset) visible.push(ids[i]);
       }
 
-      // No band overlaps: we're above the first heading or past the article's
-      // content, so nothing is active and the thumb hides.
-      setActive((previous) => (sameOrder(previous, visible) ? previous : visible));
+      // The boundary dots' states. Either can overlap with visible headings —
+      // the first heading activates as it enters the viewport bottom while the
+      // reading position is still in the intro, and the last section stays
+      // active while the article's end is on screen.
+      const atStart = tops[0] > offset;
+      const atEnd = contentBottom <= viewportHeight;
+
+      const next: ActiveHeadings = { ids: visible, atStart, atEnd };
+      setActive((previous) => (sameActive(previous, next) ? previous : next));
     };
 
     const schedule = () => {
@@ -135,10 +150,14 @@ export function useRailGeometry(entries: TocEntry[]): {
         top: bounds[index].top,
         bottom: bounds[index].top + bounds[index].height,
       }));
+      const first = items[0];
+      const last = items[items.length - 1];
       setRail({
         width: list.offsetWidth,
         height: list.offsetHeight,
         path: buildThreadPath(items),
+        start: { x: first.x, y: first.top },
+        end: { x: last.x, y: last.bottom },
         bounds,
       });
     };

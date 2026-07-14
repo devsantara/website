@@ -1,5 +1,11 @@
 import type { TableOfContents } from '#/modules/markdown/markdown.types';
-import type { ItemBounds, ThreadItem, ThumbRange, TocEntry } from '#/modules/toc/toc.types';
+import type {
+  ActiveHeadings,
+  ItemBounds,
+  ThreadItem,
+  ThumbRange,
+  TocEntry,
+} from '#/modules/toc/toc.types';
 
 // Only h2/h3 make it into the rail — deeper headings would over-nest the
 // narrow gutter, and h1 is the page title, rendered outside the MDX body.
@@ -26,7 +32,7 @@ export function normalizeEntries(toc: TableOfContents): TocEntry[] {
 // Geometry of the SVG rail, in px (its viewBox maps 1:1 to rendered pixels).
 // The thread sits in each item's left padding; both step right by INDENT per
 // level so the line and the text indent together.
-const THREAD_X_BASE = 2;
+const THREAD_X_BASE = 3;
 const ITEM_PADDING_BASE = 18;
 const INDENT = 12;
 
@@ -72,28 +78,50 @@ export function buildThreadPath(items: ThreadItem[]): string {
   return path;
 }
 
+/** Radius, in px, of the dots terminating the rail. */
+export const DOT_RADIUS = 2.5;
+
+/** The span a boundary dot occupies around its center `y`. */
+function dotSpan(y: number): ThumbRange {
+  return { top: y - DOT_RADIUS, bottom: y + DOT_RADIUS };
+}
+
 /**
- * Vertical span covering every active item, or `null` when none are active.
- * The span pulls in by `BEND_INSET` at both ends: the rail's bends sit within
- * that distance of the edge between two items, so a lone active item reads as
- * a straight line and a bend only shows when the items on both of its sides
- * are active. Trimming both ends unconditionally — not just beside a bend —
- * keeps every thumb the same height and centered on its items regardless of
- * the neighbors' indent.
+ * Vertical span the accent layer reveals, or `null` when nothing is active.
+ * The active items' span pulls in by `BEND_INSET` at both ends: the rail's
+ * bends sit within that distance of the edge between two items, so a lone
+ * active item reads as a straight line and a bend only shows when the items on
+ * both of its sides are active. Trimming both ends unconditionally — not just
+ * beside a bend — keeps every thumb the same height and centered on its items
+ * regardless of the neighbors' indent.
+ *
+ * While a boundary state holds, the span stretches over that end's dot, so the
+ * highlight morphs continuously between dot and line as the reader crosses the
+ * article's edges. The spans are contiguous by construction — a lit dot always
+ * abuts the active range — so one window covers them all.
  */
 export function thumbRange(
   entries: TocEntry[],
-  activeSet: Set<string>,
+  active: ActiveHeadings,
   bounds: ItemBounds[],
 ): ThumbRange | null {
+  const activeSet = new Set(active.ids);
   const activeIndexes = entries
     .map((entry, index) => (activeSet.has(entry.id) ? index : -1))
     .filter((index) => index !== -1);
-  if (activeIndexes.length === 0) return null;
-  const first = bounds[activeIndexes[0]];
-  const last = bounds[activeIndexes[activeIndexes.length - 1]];
-  return {
-    top: first.top + BEND_INSET,
-    bottom: last.top + last.height - BEND_INSET,
-  };
+
+  const spans: ThumbRange[] = [];
+  if (active.atStart) spans.push(dotSpan(bounds[0].top));
+  if (activeIndexes.length > 0) {
+    const first = bounds[activeIndexes[0]];
+    const last = bounds[activeIndexes[activeIndexes.length - 1]];
+    spans.push({ top: first.top + BEND_INSET, bottom: last.top + last.height - BEND_INSET });
+  }
+  if (active.atEnd) {
+    const last = bounds[bounds.length - 1];
+    spans.push(dotSpan(last.top + last.height));
+  }
+
+  if (spans.length === 0) return null;
+  return { top: spans[0].top, bottom: spans[spans.length - 1].bottom };
 }

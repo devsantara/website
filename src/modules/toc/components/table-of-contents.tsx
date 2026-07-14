@@ -28,8 +28,8 @@ export function TableOfContents({ toc, className, onNavigate }: TableOfContentsP
 
   if (entries.length === 0) return null;
 
-  const activeSet = new Set(active);
-  const thumb = rail ? thumbRange(entries, activeSet, rail.bounds) : null;
+  const activeSet = new Set(active.ids);
+  const thumb = rail ? thumbRange(entries, active, rail.bounds) : null;
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     const target = document.getElementById(id);
@@ -44,8 +44,17 @@ export function TableOfContents({ toc, className, onNavigate }: TableOfContentsP
 
   return (
     <nav aria-label="On this page" className={cn('relative text-sm', className)}>
-      {rail && <TocThumb width={rail.width} height={rail.height} path={rail.path} thumb={thumb} />}
-      <ul ref={listRef} className="relative">
+      {rail && (
+        <TocThumb
+          width={rail.width}
+          height={rail.height}
+          path={rail.path}
+          thumb={thumb}
+          start={rail.start}
+          end={rail.end}
+        />
+      )}
+      <ul ref={listRef} className="relative p-1">
         {entries.map((entry, index) => (
           <li
             key={entry.id}

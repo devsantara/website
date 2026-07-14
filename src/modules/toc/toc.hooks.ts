@@ -128,7 +128,7 @@ function scrollableAncestor(element: HTMLElement): HTMLElement | null {
 
 /**
  * Keeps the active TOC item centered in its own scroll container. A long
- * article's list can outgrow the fixed desktop aside (or the mobile popover), so
+ * article's list can outgrow the fixed desktop aside (or the sheet/drawer), so
  * as the reader scrolls the page the container scrolls in step to hold the
  * highlighted section on its vertical midline. The browser clamps this at the
  * ends, so the first and last items still rest against the container's edges

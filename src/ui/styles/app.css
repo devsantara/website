@@ -142,8 +142,8 @@
 
 /*
  * Hide the scrollbar on the table-of-contents scroll areas (desktop gutter
- * aside, mobile popover) while keeping them scrollable — the SVG rail already
- * signals overflow, so a bar would just add visual noise.
+ * aside, tablet sheet, mobile drawer) while keeping them scrollable — the SVG
+ * rail already signals overflow, so a bar would just add visual noise.
  */
 .toc-scroll {
   scrollbar-width: none;

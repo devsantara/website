@@ -22,7 +22,7 @@ interface TableOfContentsProps {
  * The "On this page" navigation: a list of h2/h3 links with a curved SVG rail
  * whose accented thumb follows the headings currently in view (see
  * {@link useActiveHeadings}). Rendered on its own in the desktop gutter and
- * inside the mobile popover by `PageTableOfContents`.
+ * inside the tablet sheet and mobile drawer by `PageTableOfContents`.
  */
 export function TableOfContents({ toc, className, onNavigate }: TableOfContentsProps) {
   const entries = React.useMemo(() => normalizeEntries(toc), [toc]);

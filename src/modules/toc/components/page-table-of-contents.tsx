@@ -22,12 +22,14 @@ export function PageTableOfContents({ toc }: { toc: TableOfContentsData }) {
 
   return (
     <>
-      <aside className="toc-scroll fixed top-8 left-[calc(50%+23rem)] hidden max-h-[calc(100vh-4rem)] w-56 flex-col overflow-y-auto xl:flex">
-        <p className="text-muted-foreground mb-3 flex items-center gap-2 text-sm">
+      <aside className="fixed top-8 left-[calc(50%+23rem)] hidden max-h-[calc(100vh-4rem)] w-56 flex-col xl:flex">
+        <p className="text-muted-foreground mb-3 flex shrink-0 items-center gap-2 text-sm">
           <ListIcon className="size-4" aria-hidden />
           On this page
         </p>
-        <TableOfContents toc={toc} />
+        <div className="toc-scroll min-h-0 overflow-y-auto">
+          <TableOfContents toc={toc} />
+        </div>
       </aside>
 
       <div className="xl:hidden">

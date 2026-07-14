@@ -38,8 +38,8 @@ export function normalizeEntries(toc: TableOfContents): TocEntry[] {
 // The thread sits in each item's left padding; both step right by INDENT per
 // level so the line and the text indent together.
 const THREAD_X_BASE = 2;
-const ITEM_PADDING_BASE = 16;
-const INDENT = 16;
+const ITEM_PADDING_BASE = 18;
+const INDENT = 12;
 
 /** Horizontal position of the rail for a heading at `level`. */
 export function threadX(level: number): number {
@@ -56,21 +56,20 @@ export interface Point {
   y: number;
 }
 
-// How far, in px, the Bézier control points sit above/below the item they curve
-// toward. Kept small relative to the gap so the rail stays vertical through most
-// of a stepping segment and only rounds off near each end — the fuma-nama.dev
-// connector shape. Capped below half the gap so the control points never cross
-// (which would kink the curve) when items sit close together.
+// How far, in px, the rail runs straight down before and after the diagonal that
+// steps between columns. Kept small relative to the gap so the rail stays
+// vertical through most of a stepping segment and only angles across near the
+// middle. Capped below half the gap so the two vertical runs never overlap (and
+// the corners never invert) when items sit close together.
 const BEND_INSET = 8;
 
 /**
  * Builds the SVG path that threads through each item's point in order. Segments
  * between items at the same indent are straight verticals; a step to a different
- * indent is a single cubic Bézier whose control points sit near the *opposite*
- * item's height — so the rail leaves the previous column heading straight down,
- * rounds across in the middle, and arrives at the next column heading straight
- * down. Placing the controls at the midpoint instead would draw a straight
- * diagonal; offsetting them toward the far ends is what makes it read as a bend.
+ * indent leaves the previous column heading straight down, cuts across on a
+ * straight diagonal, then arrives at the next column heading straight down. The
+ * three segments meet at sharp corners — no rounding — so the bend reads as a
+ * crisp edge rather than a curve.
  */
 export function buildThreadPath(points: Point[]): string {
   if (points.length === 0) return '';
@@ -83,7 +82,7 @@ export function buildThreadPath(points: Point[]): string {
       continue;
     }
     const inset = Math.min(BEND_INSET, (current.y - previous.y) * 0.4);
-    path += ` C${previous.x} ${current.y - inset} ${current.x} ${previous.y + inset} ${current.x} ${current.y}`;
+    path += ` L${previous.x} ${previous.y + inset} L${current.x} ${current.y - inset} L${current.x} ${current.y}`;
   }
   return path;
 }

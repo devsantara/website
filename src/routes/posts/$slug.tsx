@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { getPostBySlugFn } from '#/modules/post/post.fn';
 import { ThumbnailFigure } from '#/modules/thumbnail/components/thumbnail-figure';
-import { PageTableOfContents } from '#/modules/toc/components/page-table-of-contents';
+import { ArticleToc } from '#/modules/toc/components/article-toc';
 import { Badge } from '#/ui/components/core/badge';
 import { Separator } from '#/ui/components/core/separator';
 
@@ -37,7 +37,7 @@ function PostPage() {
         <Separator className="my-6" />
         <div className="prose dark:prose-invert">{post.mdx}</div>
       </article>
-      <PageTableOfContents toc={post.toc} />
+      <ArticleToc headings={post.toc} />
     </main>
   );
 }

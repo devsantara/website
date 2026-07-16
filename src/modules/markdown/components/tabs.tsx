@@ -1,7 +1,4 @@
-'use client';
-
-import type { ReactNode } from 'react';
-import { Children, isValidElement } from 'react';
+import * as React from 'react';
 
 import { Tabs as TabsRoot, TabsContent, TabsList, TabsTrigger } from '#/ui/components/core/tabs';
 
@@ -11,9 +8,9 @@ import { Tabs as TabsRoot, TabsContent, TabsList, TabsTrigger } from '#/ui/compo
  * remark plugin are plain strings; children hold one wrapper div per
  * `::tab[Label]` section, in label order.
  */
-export function Tabs({ labels, children }: { labels: string; children: ReactNode }) {
+export function Tabs({ labels, children }: { labels: string; children: React.ReactNode }) {
   const tabLabels = JSON.parse(labels) as string[];
-  const panels = Children.toArray(children).filter((child) => isValidElement(child));
+  const panels = React.Children.toArray(children).filter((child) => React.isValidElement(child));
 
   return (
     <TabsRoot defaultValue={0} data-tabs>

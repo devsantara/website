@@ -5,7 +5,7 @@ import {
   OctagonAlertIcon,
   TriangleAlertIcon,
 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import * as React from 'react';
 
 /**
  * The five GitHub alert types, each mapped to its icon and visible label.
@@ -31,7 +31,7 @@ type AlertType = keyof typeof ALERTS;
  * @param props.type - One of the five alert types; supplied by `remark-alert`.
  * @param props.children - The alert body, already stripped of its `[!TYPE]` marker.
  */
-export function Callout({ type, children }: { type: AlertType; children: ReactNode }) {
+export function Callout({ type, children }: { type: AlertType; children: React.ReactNode }) {
   const { icon: Icon, label } = ALERTS[type];
   return (
     <div data-callout={type}>

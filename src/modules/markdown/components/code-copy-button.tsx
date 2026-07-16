@@ -1,8 +1,7 @@
 'use client';
 
 import { CheckIcon, CopyIcon } from 'lucide-react';
-import type { MouseEvent } from 'react';
-import { useRef, useState } from 'react';
+import * as React from 'react';
 
 import { Button } from '#/ui/components/core/button';
 
@@ -17,10 +16,10 @@ const COPY_FEEDBACK_DURATION_MS = 2000;
  * lines are skipped here.
  */
 export function CodeCopyButton() {
-  const [copied, setCopied] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [copied, setCopied] = React.useState(false);
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  function handleCopy(event: MouseEvent<HTMLButtonElement>) {
+  function handleCopy(event: React.MouseEvent<HTMLButtonElement>) {
     const figure = event.currentTarget.closest('figure');
     if (!figure) return;
 

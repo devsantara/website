@@ -14,11 +14,16 @@ import { viteMdx } from '#/modules/markdown/markdown.vite';
 
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  // lucide-react ships a `"use client"` directive on its Icon module, so the RSC
+  // graph treats it as a client boundary. Excluding it from the client dep
+  // optimizer keeps that boundary consistent and silences the rsc:use-client
+  // "inconsistently optimized" warning.
+  optimizeDeps: { exclude: ['lucide-react'] },
   server: { port: 3000 },
   preview: { port: 3000 },
   build: {
     target: 'esnext',
-    rollupOptions: {
+    rolldownOptions: {
       external: ['node:async_hooks', 'cloudflare:workers'],
     },
   },

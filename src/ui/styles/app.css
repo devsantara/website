@@ -130,5 +130,77 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  /* Honour reduced-motion for every anchor jump the way the TOC's JS already does. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+/*
+ * Hide the scrollbar on the table-of-contents scroll areas (desktop gutter
+ * aside, tablet sheet, mobile drawer) while keeping them scrollable — the SVG
+ * rail already signals overflow, so a bar would just add visual noise.
+ */
+.toc-scroll {
+  scrollbar-width: none;
+}
+
+.toc-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * Fade the top/bottom edges of the TOC scroll areas, but only while there's
+ * more to scroll in that direction. Two scroll-driven animations drive the
+ * fade lengths of a single mask gradient: the top fade grows in as you scroll
+ * away from the top, the bottom fade shrinks away as you approach the end. The
+ * lengths start at 0, so where scroll-driven animations aren't supported — or
+ * the list is short enough not to overflow — nothing fades.
+ */
+@property --toc-fade-top {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --toc-fade-bottom {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@supports (animation-timeline: scroll()) {
+  .toc-scroll {
+    --toc-fade: 8rem;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 var(--toc-fade-top),
+      #000 calc(100% - var(--toc-fade-bottom)),
+      transparent
+    );
+    animation:
+      toc-fade-top linear both,
+      toc-fade-bottom linear both;
+    animation-timeline: scroll(self block), scroll(self block);
+    animation-range:
+      0 var(--toc-fade),
+      calc(100% - var(--toc-fade)) 100%;
+  }
+
+  @keyframes toc-fade-top {
+    to {
+      --toc-fade-top: var(--toc-fade);
+    }
+  }
+
+  @keyframes toc-fade-bottom {
+    from {
+      --toc-fade-bottom: var(--toc-fade);
+    }
   }
 }
